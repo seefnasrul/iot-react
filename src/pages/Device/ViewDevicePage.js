@@ -19,8 +19,10 @@ function ViewDevicePage(props) {
     const [redirect,setRedirect] = useState(null);
     const [fetching, setFetching] = useState(true);
     const [initForm, setInitForm] = useState({name:"",device_fields:[]});
+    const [hide_secret, setHideSecret] = useState(true);
     const {id} = useParams();
     let serial_id_ref = React.createRef();
+    let secret_key_ref = React.createRef();
     useEffect( () => {
         console.log(id)
         let isMounted = true;
@@ -41,11 +43,15 @@ function ViewDevicePage(props) {
         console.log(data);
     }
 
-    const copy_to_clipboard = (e) => {
-        serial_id_ref.current.select();
+    const copy_to_clipboard = (e,ref_element) => {
+        ref_element.current.select();
         document.execCommand('copy');
         e.target.focus();
         props.actions.toast.setToastNotification({type:'info',message:'copied to clipboard!'});
+    }
+
+    const hide_show_toggle = () => {
+        setHideSecret(!hide_secret);
     }
 
     return (
@@ -72,7 +78,7 @@ function ViewDevicePage(props) {
                             <label class="col-form-label text-right col-lg-3 col-sm-12">Name</label>
                             <div class="col-lg-6 col-md-9 col-sm-12">
                                 <div class="input-group">
-                                    <input type="text" class="form-control" id="kt_clipboard_1" placeholder="Type some value to copy" value={initForm.name} disabled={true}/>
+                                    <input type="text" class="form-control" id="kt_clipboard_1" placeholder="Type some value to copy" value={initForm.name} readOnly={true}/>
                                 </div>
                             </div>
                         </div>   
@@ -81,15 +87,36 @@ function ViewDevicePage(props) {
                             <label class="col-form-label text-right col-lg-3 col-sm-12">Serial ID</label>
                             <div class="col-lg-6 col-md-9 col-sm-12">
                                 <div class="input-group">
-                                    <input type="text" class="form-control" id="kt_clipboard_1" placeholder="Type some value to copy" value={initForm.device_serial_id} disabled={true}  ref={serial_id_ref}/>
+                                    <input type="text" class="form-control" id="kt_clipboard_1" placeholder="Type some value to copy" value={initForm.device_serial_id} readOnly={true}  ref={serial_id_ref}/>
                                     <div class="input-group-append">
-                                        <a href="#" class="btn btn-secondary" data-clipboard="true" data-clipboard-target="#kt_clipboard_1" onClick={copy_to_clipboard}>
+                                        <a href="#" class="btn btn-secondary" data-clipboard="true" data-clipboard-target="#kt_clipboard_1" onClick={(e)=>copy_to_clipboard(e,serial_id_ref)}>
                                             <i class="la la-copy"></i>
                                         </a>
                                     </div>
                                 </div>
                             </div>
                         </div>  
+
+                        <div class="form-group row">
+                            <label class="col-form-label text-right col-lg-3 col-sm-12">Secret Key</label>
+                            <div class="col-lg-6 col-md-9 col-sm-12">
+                                <div class="input-group">
+                                    <input type={hide_secret?"password":"text"} class="form-control" id="kt_clipboard_1" placeholder="Type some value to copy" value={props.user_data.company.secret_key} readOnly={true}  ref={secret_key_ref}/>
+                                    <div class="input-group-append">
+                                        <a href="#" class="btn btn-secondary" data-clipboard="true" data-clipboard-target="#kt_clipboard_1" onClick={hide_show_toggle}>
+                                        {hide_secret?<i class="la la-eye"></i>:<i class="la la-eye-slash"></i>}
+                                        </a>
+                                    </div>
+                                    <div class="input-group-append">
+                                        <a href="#" class="btn btn-secondary" data-clipboard="true" data-clipboard-target="#kt_clipboard_1" onClick={(e)=>copy_to_clipboard(e,secret_key_ref)}>
+                                            <i class="la la-copy"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>  
+
+
                         <hr />
                         <h5 style={{marginBottom:'10px'}}>Device Fields</h5>
                         <table class="table table-bordered table-checkable dataTable no-footer dtr-inline collapsed">
@@ -117,6 +144,7 @@ function ViewDevicePage(props) {
                         
                         </div>
                         <div className="card-footer">
+                            <Link to={{pathname:"/device/"+initForm._id+"/logs",state:{device:initForm}}} type="button" className={c("btn btn-primary font-weight-bold mr-2")}><i class="la la-list"></i> Logs</Link>
                             <Link to={"/device/"+initForm._id+"/edit"} type="button" className={c("btn btn-primary font-weight-bold mr-2")}><i class="la la-edit"></i> Edit</Link>
                             <button type="button" className={c("btn btn-danger font-weight-bold mr-2")} style={{marginLeft:'10px'}} onClick={()=>alert('deleted')} ><i class="la la-trash"></i> Delete</button>
                             {/* <button type="submit" className="btn btn-light-success font-weight-bold">Cancel</button> */}

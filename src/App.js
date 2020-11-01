@@ -36,6 +36,7 @@ import ImportScript from './ImportScript';
 import {createBrowserHistory} from "history";
 import EditDevicePage from './pages/Device/EditDevicePage';
 import ViewDevicePage from './pages/Device/ViewDevicePage';
+import DeviceLogListPage from './pages/Device/DeviceLogListPage';
 
 export const history = createBrowserHistory({ forceRefresh: true });
 const persistConfig = {
@@ -91,6 +92,10 @@ export default function App() {
                         </PrivateRoute>
                         <PrivateRoute exact path="/device/:id/edit">
                             <Main route="/device/:id/edit" content={<EditDevicePage/>} header="Edit Device"/>
+                        </PrivateRoute>
+
+                        <PrivateRoute exact path="/device/:id/logs">
+                            <Main route="/device/:id/logs" content={<DeviceLogListPage/>} header="Device Logs"/>
                         </PrivateRoute>
 
                         {/* <PrivateRoute path="/devices" children={<Devices />}/> */}
