@@ -1,25 +1,57 @@
 // import "./styles.css";
-
+import ReactDOM from 'react-dom';
 import React, { Component } from "react";
 import axios from "axios";
 import Url from '../../constants/Url';
 import {connect} from 'react-redux';
-import {Link} from 'react-router-dom';
+import {Link, Redirect,withRouter} from 'react-router-dom';
 // import {bindActionCreators} from 'redux';
 
-// const $ = require('jquery')
-// $.Datatable = require('datatables.net')
-// $.DataTable = window.datatables; 
+// import '../../assets_copy/plugins/custom/datatables/datatables.bundle.css';
 
-import '../../assets_copy/plugins/custom/datatables/datatables.bundle.css';
+const $ = require('jquery')
+$.DataTable = require('datatables.net')
+
 
 class DevicesPage extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       users: [],
-      loading: true
+	  loading: true,
+	  columns : [
+		{
+			title: 'Name',
+			data: 'name'
+		},
+		{
+			title: 'Serial ID',
+			data: 'device_serial_id'
+		},
+		{
+			title: 'Created At',
+			data: 'created_at'
+		},
+		{   orderable: false,	
+			title:"Action",
+			data: null, 
+			className: "center",
+			createdCell : ( td, cellData, rowData, row, col) => 
+			ReactDOM.render(
+				// return '<a href="/device/"+rowData._id></a>'
+				<React.Fragment>
+					<div class="btn btn-sm btn-clean btn-icon" title="Edit details" onClick={()=>this.change_route("/device/"+rowData._id+"/edit")}><i class="la la-edit"></i></div>
+					<div class="btn btn-sm btn-clean btn-icon" title="View details"  onClick={()=>this.change_route("/device/"+rowData._id)}><i class="la la-eye"></i></div>
+				</React.Fragment>,td
+			)
+		}
+	],
     };
+  }
+
+
+  change_route = (route) => {
+	this.props.history.push(route);
   }
 
   //option 1
@@ -35,43 +67,24 @@ class DevicesPage extends React.Component {
     return res.data;
   }
 
-  componentDidMount = ()=>{
-    this.getUsersData().then(() => this.sync());
-  }
+	componentDidMount = ()=>{
+		this.$el = $(this.el);
+			this.$el.DataTable({
+			processing: true,
+			serverSide: true,
+			columns:this.state.columns,
+			ordering: true,
+			paging:true,
+			ajax: {
+			url: Url.API+"/device/get-device",
+			type: 'GET',
+			beforeSend : (xhr) => {
+				xhr.setRequestHeader("Authorization","Bearer " + this.props.token.access_token);
+			}
+		},
 
-  sync = ()=>{
-	window.$('table').DataTable({
-		processing: true,
-        serverSide: true,
-      ajax: {
-        url: Url.API+"/device/get-device",
-        type: 'GET',
-        data: {
-            columnsDef: [
-				'name',
-				'device_serial_id', 
-			],
-        },
-        beforeSend : (xhr) => {
-            xhr.setRequestHeader("Authorization","Bearer " + this.props.token.access_token);
-        }
-    },
-      columns: [
-        { title: "Name", data: "name" },
-		{ title: "Device Serial ID", data: "device_serial_id" },
-		{   orderable: false,	
-			title:"Action",
-			data: null, 
-			className: "center",
-			render: function ( data, type, row ) {
-			return '<a href="/device/'+data._id+'/edit" class="btn btn-sm btn-clean btn-icon" title="Edit details"><i class="la la-edit"></i></a>'+
-			'<a href="/device/'+data._id+'" class="btn btn-sm btn-clean btn-icon" title="Edit details"><i class="la la-eye"></i></a>';
-		} },
-	  ],
-	  
-      paging:true
-    });
-  }
+		});
+	}
 
   render() {
     return (
@@ -165,28 +178,17 @@ class DevicesPage extends React.Component {
 				{/* <!--end::Button--> */}
 			</div>
 		</div>
-        <div className="card-body alert-custom alert-white alert-shadow gutter-b" >
+        <div className="card-body alert-custom alert-white alert-shadow gutter-b" id="dt-container" >
 			<table
-				className="table table-bordered table-hover" id="kt_datatable"
 				width="100%"
-				// ref={(el) => (this.el = el)}
+				ref={(el) => (this.el = el)}
 			></table>
+			{/* <table ref="main" ></table> */}
         </div>
       </div>
     );
   }
 }
-
-//  default DevicesPage;
-// export default function App() {
-//   return (
-//     <div>
-//       <h1>Hello CodeSandbox</h1>
-//       <h2>Start editing to see some magic happen!</h2>
-//       <Tbl />
-//     </div>
-//   );
-// }
 
 const mapStateToProps = (state) => {
     // Redux Store --> Component
@@ -196,13 +198,5 @@ const mapStateToProps = (state) => {
     };
 };
 
-// Map Dispatch To Props (Dispatch Actions To Reducers. Reducers Then Modify The Data And Assign It To Your Props)
-// const mapDispatchToProps = (dispatch) => {
-//     return {
-//         actions: {
-//             home: bindActionCreators(homeActions, dispatch)
-//         }
-//     }
-// };
 // Exports
-export default connect(mapStateToProps /*, mapDispatchToProps */)(DevicesPage);
+export default connect(mapStateToProps)(withRouter(DevicesPage));
