@@ -171,7 +171,6 @@ class DeviceLogList extends React.Component {
 		</div>
         <div className="card-body alert-custom alert-white alert-shadow gutter-b" >
 			<table
-				className="table table-bordered table-hover" id="kt_datatable"
                 width="100%"
                 ref={el => this.el = el} 
 				// ref={(el) => (this.el = el)}
