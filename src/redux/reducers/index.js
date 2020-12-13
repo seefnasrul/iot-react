@@ -2,6 +2,7 @@ import { combineReducers } from 'redux';
 import authReducers from './authReducers';
 import homeReducers from './homeReducers';
 import examReducers from './examReducers';
+import dashboardReducers from './dashboardReducers';
 import toastReducers from './toastReducers';
 
 import { REHYDRATE,PURGE } from 'redux-persist/lib/constants'; 
@@ -19,6 +20,7 @@ const allReducers = combineReducers({
     auth:authReducers,
     home:homeReducers,
     exam:examReducers,
+    dashboard:dashboardReducers,
     toast:toastReducers,
     ...globalReducer
 })

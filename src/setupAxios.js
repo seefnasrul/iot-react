@@ -32,7 +32,8 @@ export default function setupAxios(axios, store,history) {
        console.log('setupAxios',error.response.status);
         if (error.response.status === 401) {
           localStorage.clear();
-          store.dispatch({type:UNSET_AUTH})
+          store.dispatch({type:UNSET_AUTH});
+          history.push('/login');
         }
 
         if (error.response.status === 404) {

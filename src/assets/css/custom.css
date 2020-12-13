@@ -6,3 +6,20 @@
  */
 
 /*# sourceMappingURL=custom.css.map */
+
+.grid-widget-box{
+    display:flex;
+    flex-direction:column;
+    background-color:#fff !important;
+    padding:5px 10px 5px 10px;
+}
+
+.grid-widget-box .toolbar{
+    flex-direction:row;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+}
+.grid-widget-box .toolbar span{
+    font-size:1.5rem;
+}

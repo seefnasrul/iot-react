@@ -3,6 +3,7 @@ import { watchLogin,watchRegister,watchProfileUpdate} from '../sagas/authSagas';
 import { watchHome } from './homeSagas';
 import { watchStartExam,watchSaveExamAnswer } from './examSagas';
 import { watchCreateNewDevice,watchGetDeviceByID,watchUpdateDeviceByID } from './deviceSagas';
+import { watchSaveDashboard,watchGetDashboardData,watchSaveDashboardTimerange} from './dashboardSagas';
 function* rootSaga() {
     yield all([
         watchProfileUpdate(),
@@ -14,6 +15,9 @@ function* rootSaga() {
         watchCreateNewDevice(),
         watchGetDeviceByID(),
         watchUpdateDeviceByID(),
+        watchSaveDashboard(),
+        watchGetDashboardData(),
+        watchSaveDashboardTimerange(),
     ])
 }
 export default rootSaga

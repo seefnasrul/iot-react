@@ -9,6 +9,10 @@ import { ToastContainer, toast } from 'react-toastify';
 
 import {Helmet} from "react-helmet";
 import {appendScript} from '../appendScript';
+import moment from 'moment';
+import 'moment-timezone';
+
+import '../assets/css/custom.css';
 const c = require('classnames');
 class Main extends React.Component {
     constructor(props) {
@@ -17,10 +21,21 @@ class Main extends React.Component {
             redirect: null,
             toast:this.props.toast,
             show_user_bar:false,
+            time: moment().clone().tz(Intl.DateTimeFormat().resolvedOptions().timeZone).toLocaleString()
         }
-
+        this.displayTime = this.displayTime.bind(this);
         this.toast_counter = 0;
     }
+
+    displayTime(){
+        //let now = moment();
+        //let location = now.clone().tz(this.props.timezone);
+        this.setState({
+            time: moment().clone().tz(Intl.DateTimeFormat().resolvedOptions().timeZone).toLocaleString()
+        });
+        //return location.toLocaleString();
+    }
+
     componentWillMount(){
         
     }
@@ -47,6 +62,10 @@ class Main extends React.Component {
                 param: this.props.param
             });
         }
+
+        this.interval = setInterval(() => {
+            this.displayTime();
+        }, 1000);
     }
 
     logout = () => {
@@ -122,7 +141,8 @@ class Main extends React.Component {
                 </Helmet> */}
                 {/* <!--begin::Logo--> */}
                 <a  >
-                    <img alt="Logo" src={require("../assets_copy/media/logos/logo-light.png")} />
+                    {/* <img alt="Logo" src={require("../assets_copy/media/logos/logo-light.png")} /> */}
+                    <h5 className="text-white">Finatech</h5>
                 </a>
                 {/* <!--end::Logo--> */}
                 {/* <!--begin::Toolbar--> */}
@@ -165,7 +185,8 @@ class Main extends React.Component {
                         <div className="brand flex-column-auto" id="kt_brand">
                             {/* <!--begin::Logo--> */}
                             <a  className="brand-logo">
-                                <img alt="Logo" src={require("../assets_copy/media/logos/logo-light.png")} />
+                                {/* <img alt="Logo" src={require("../assets_copy/media/logos/logo-light.png")} /> */}
+                                <h5 className="text-white">Finatech</h5>
                             </a>
                             {/* <!--end::Logo--> */}
                             {/* <!--begin::Toggle--> */}
@@ -806,7 +827,12 @@ class Main extends React.Component {
                         draggable
                         pauseOnHover
                         />
-                            {/* <!--begin::Subheader--> */}
+                            {
+                                this.props.header == "Dashboard"
+                                ?
+                                this.props.content
+                                :
+                                <React.Fragment>
                             <div className="subheader py-2 py-lg-4 subheader-solid" id="kt_subheader" style={{marginTop:'40px'}}>
                                 <div className="container-fluid d-flex align-items-center justify-content-between flex-wrap flex-sm-nowrap">
                                     {/* <!--begin::Info--> */}
@@ -815,13 +841,104 @@ class Main extends React.Component {
                                         <h5 className="text-dark font-weight-bold mt-2 mb-2 mr-5" >{this.props.header}</h5>
                                         
                                     </div>
+
+                                    <div className="d-flex align-items-center">
+									{/* <!--begin::Actions--> */}
+									<a href="#" className="btn btn-clean btn-sm font-weight-bold font-size-base mr-1">Today</a>
+									<a href="#" className="btn btn-clean btn-sm font-weight-bold font-size-base mr-1">Month</a>
+									<a href="#" className="btn btn-clean btn-sm font-weight-bold font-size-base mr-1">Year</a>
+									{/* <!--end::Actions-->
+									<!--begin::Daterange--> */}
+									<a href="#" className="btn btn-sm btn-light font-weight-bold mr-2" id="kt_dashboard_daterangepicker" data-toggle="tooltip" title="" data-placement="left" data-original-title="Select dashboard daterange">
+										<span className="text-muted font-size-base font-weight-bold mr-2" id="kt_dashboard_daterangepicker_title">Today:</span>
+										<span className="text-primary font-size-base font-weight-bolder" id="kt_dashboard_daterangepicker_date">{this.state.time}</span>
+									</a>
+                                    
+									<a href="#" className="btn btn-clean btn-sm font-weight-bold font-size-base mr-1" data-original-title="Add Widget" data-toggle="tooltip" title="" data-placement="left"><i class="icon-2x text-dark-50 flaticon2-add-square"></i></a>
+									{/* <!--end::Daterange--> */}
+									{/* <!--begin::Dropdowns--> */}
+									<div className="dropdown dropdown-inline" data-toggle="tooltip" title="" data-placement="left" data-original-title="Add Widget">
+										<a href="#" className="btn btn-sm btn-clean btn-icon" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            <i class="icon-2x text-dark-50 flaticon2-add-square"></i>
+										</a>
+										<div className="dropdown-menu p-0 m-0 dropdown-menu-md dropdown-menu-right py-3" >
+											{/* <!--begin::Navigation--> */}
+											<ul className="navi navi-hover py-5">
+												<li className="navi-item">
+													<a href="#" className="navi-link">
+														<span className="navi-icon">
+															<i className="flaticon2-drop"></i>
+														</span>
+														<span className="navi-text">New Group</span>
+													</a>
+												</li>
+												<li className="navi-item">
+													<a href="#" className="navi-link">
+														<span className="navi-icon">
+															<i className="flaticon2-list-3"></i>
+														</span>
+														<span className="navi-text">Contacts</span>
+													</a>
+												</li>
+												<li className="navi-item">
+													<a href="#" className="navi-link">
+														<span className="navi-icon">
+															<i className="flaticon2-rocket-1"></i>
+														</span>
+														<span className="navi-text">Groups</span>
+														<span className="navi-link-badge">
+															<span className="label label-light-primary label-inline font-weight-bold">new</span>
+														</span>
+													</a>
+												</li>
+												<li className="navi-item">
+													<a href="#" className="navi-link">
+														<span className="navi-icon">
+															<i className="flaticon2-bell-2"></i>
+														</span>
+														<span className="navi-text">Calls</span>
+													</a>
+												</li>
+												<li className="navi-item">
+													<a href="#" className="navi-link">
+														<span className="navi-icon">
+															<i className="flaticon2-gear"></i>
+														</span>
+														<span className="navi-text">Settings</span>
+													</a>
+												</li>
+												<li className="navi-separator my-3"></li>
+												<li className="navi-item">
+													<a href="#" className="navi-link">
+														<span className="navi-icon">
+															<i className="flaticon2-magnifier-tool"></i>
+														</span>
+														<span className="navi-text">Help</span>
+													</a>
+												</li>
+												<li className="navi-item">
+													<a href="#" className="navi-link">
+														<span className="navi-icon">
+															<i className="flaticon2-bell-2"></i>
+														</span>
+														<span className="navi-text">Privacy</span>
+														<span className="navi-link-badge">
+															<span className="label label-light-danger label-rounded font-weight-bold">5</span>
+														</span>
+													</a>
+												</li>
+											</ul>
+											{/* <!--end::Navigation--> */}
+										</div>
+									</div>
+									{/* <!--end::Dropdowns--> */}
+								</div>
                                     {/* <!--end::Info--> */}
                                     {/* <!--begin::Toolbar--> */}
                                 
                                 </div>
                             </div>
-                            {/* <!--end::Subheader--> */}
-                            {/* <!--begin::Entry--> */}
+                           
                             <div className="d-flex flex-column-fluid">
                                 {/* <!--begin::Container--> */}
                                 <div className="container" style={{minHeight:'100vh'}}>
@@ -831,7 +948,11 @@ class Main extends React.Component {
                                 </div>
                                 {/* <!--end::Container--> */}
                             </div>
-                            {/* <!--end::Entry--> */}
+                            
+                            </React.Fragment>
+                                
+                        }
+                            
                         </div>
                         {/* <!--end::Content--> */}
                         {/* <!--begin::Footer--> */}
