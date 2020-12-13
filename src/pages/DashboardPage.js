@@ -379,6 +379,9 @@ class DashboardPage extends React.Component {
           });
           await this.get_widget_data();
           if(this.state.realtime){
+              if(this.interval_realtime !== null){
+                clearInterval(this.interval_realtime);
+              }
               this.interval_realtime = setInterval(async ()=>{
                 await this.setState({time_end:new Date().toISOString().slice(0, 19).replace('T', ' ')});
                 this.get_widget_data();
