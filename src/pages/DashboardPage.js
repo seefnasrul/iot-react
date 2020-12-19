@@ -340,7 +340,8 @@ class DashboardPage extends React.Component {
             w: this.props.isMobile ? 12 : item.w,
             h: item.h,
             i: i.toString(),
-            isResizable:!this.props.isMobile
+            isResizable:!this.props.isMobile,
+            isDraggable:!this.props.isMobile,
             
           };
         });
