@@ -372,10 +372,10 @@ class DashboardPage extends React.Component {
             }else{
               new_items[index] = {
                 i:index/*lay.i*/,
-                w:(typeof this.state.layouts[index] === 'undefined') ? lay.w : this.state.layouts[index].w,
+                w:(typeof this.state.layout[index] === 'undefined') ? lay.w : this.state.layout[index].w,
                 x:lay.x,
                 y:lay.y,
-                h:(typeof this.state.layouts[index] === 'undefined') ? lay.h : this.state.layouts[index].h,
+                h:(typeof this.state.layout[index] === 'undefined') ? lay.h : this.state.layout[index].h,
                 data:this.state.items[index].data,
               }
             }
