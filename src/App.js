@@ -37,6 +37,7 @@ import {createBrowserHistory} from "history";
 import EditDevicePage from './pages/Device/EditDevicePage';
 import ViewDevicePage from './pages/Device/ViewDevicePage';
 import DeviceLogListPage from './pages/Device/DeviceLogListPage';
+import { useMediaQuery } from 'react-responsive';
 
 export const history = createBrowserHistory({ forceRefresh: true });
 const persistConfig = {
@@ -58,7 +59,7 @@ sagaMiddleware.run(rootSaga);
 setupAxios(axios,store,history);
 
 export default function App() {
-    
+    const isMobile = useMediaQuery({ query: `(max-width: 760px)` });
     return (
         
         <Provider store={store}>
@@ -78,7 +79,7 @@ export default function App() {
                             <Redirect to="/dashboard"/>
                         </Route>
                         <PrivateRoute path="/dashboard">
-                            <Main route="/dashboard" content={<DashboardPage/>} header="Dashboard"/>
+                            <Main route="/dashboard" content={<DashboardPage isMobile={isMobile}/>} header="Dashboard"/>
                         </PrivateRoute>
                         <PrivateRoute exact path="/devices">
                             <Main route="/devices" content={<DevicesPage/>} header="Device List"/>

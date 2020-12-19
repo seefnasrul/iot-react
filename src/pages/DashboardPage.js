@@ -9,6 +9,7 @@ import {Rupiah, SortParagraph} from '../helpers/Helper';
 import loadjs from 'loadjs';
 import _ from "lodash";
 import RGL, { WidthProvider } from "react-grid-layout";
+import Responsive from "react-grid-layout";
 import {useFormik} from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
@@ -22,7 +23,8 @@ import 'react-resizable/css/styles.css';
 import { Modal, Tooltip } from 'react-bootstrap';
 import DateTimePicker from 'react-datetime-picker';
 import Switch from "react-switch";
-
+import GaugeChart from 'react-gauge-chart'
+import MediaQuery from 'react-responsive'
 import ReactEchartsCore from "echarts-for-react/lib/core";
 import echarts from "echarts/lib/echarts";
 import "echarts/lib/chart/line";
@@ -34,7 +36,8 @@ import "echarts/lib/component/markArea";
 
 const c = require('classnames');
 const moment = require('moment');
-const ReactGridLayout = WidthProvider(RGL);
+// const ReactGridLayout = WidthProvider(RGL);
+const ResponsiveReactGridLayout = WidthProvider(Responsive);
 const customStyles = {
   content : {
     top                   : '25%',
@@ -45,10 +48,15 @@ const customStyles = {
 class DashboardPage extends React.Component {
 
     static defaultProps = {
+        // className: "layout",
+        // rowHeight: 30,
+        // cols: 12,
+        // y:5
+
         className: "layout",
-        rowHeight: 30,
-        cols: 12,
-        y:5
+    rowHeight: 30,
+    // onLayoutChange: function() {},
+    // cols: { lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 },
       };
     
       constructor(props) {
@@ -65,6 +73,9 @@ class DashboardPage extends React.Component {
           time_range_modal:false,
           submiting_time_range_modal:false,
           options:[],
+          widget_to_delete_index:null,
+          delete_widget_modal:false,
+          delete_widget_modal_loading:false
           // options:{
           //   xAxis: {
           //     type: "category",
@@ -85,286 +96,6 @@ class DashboardPage extends React.Component {
         console.log(props);
       }
 
-      getOption = () => {
-        return {
-        backgroundColor: '#1b1b1b',
-        tooltip : {
-          formatter: "{a} <br/>{c} {b}"
-        },
-        toolbox: {
-          show : true,
-          feature : {
-            mark : {show: true},
-            restore : {show: true},
-            saveAsImage : {show: true}
-          }
-        },
-        series : [
-          {
-            name:'速度',
-            type:'gauge',
-            min:0,
-            max:220,
-            splitNumber:11,
-            radius: '50%',
-            axisLine: {      // 坐标轴线
-              lineStyle: {     // 属性lineStyle控制线条样式
-                color: [[0.09, 'lime'],[0.82, '#1e90ff'],[1, '#ff4500']],
-                width: 3,
-                shadowColor : '#fff', //默认透明
-                shadowBlur: 10
-              }
-            },
-            axisLabel: {      // 坐标轴小标记
-              textStyle: {     // 属性lineStyle控制线条样式
-                fontWeight: 'bolder',
-                color: '#fff',
-                shadowColor : '#fff', //默认透明
-                shadowBlur: 10
-              }
-            },
-            axisTick: {      // 坐标轴小标记
-              length :15,    // 属性length控制线长
-              lineStyle: {     // 属性lineStyle控制线条样式
-                color: 'auto',
-                shadowColor : '#fff', //默认透明
-                shadowBlur: 10
-              }
-            },
-            splitLine: {       // 分隔线
-              length :25,     // 属性length控制线长
-              lineStyle: {     // 属性lineStyle（详见lineStyle）控制线条样式
-                width:3,
-                color: '#fff',
-                shadowColor : '#fff', //默认透明
-                shadowBlur: 10
-              }
-            },
-            pointer: {       // 分隔线
-              shadowColor : '#fff', //默认透明
-              shadowBlur: 5
-            },
-            title : {
-              textStyle: {     // 其余属性默认使用全局文本样式，详见TEXTSTYLE
-                fontWeight: 'bolder',
-                fontSize: 20,
-                fontStyle: 'italic',
-                color: '#fff',
-                shadowColor : '#fff', //默认透明
-                shadowBlur: 10
-              }
-                  },
-                  detail : {
-                      backgroundColor: 'rgba(30,144,255,0.8)',
-                      borderWidth: 1,
-                      borderColor: '#fff',
-                      shadowColor : '#fff', //默认透明
-                      shadowBlur: 5,
-                      offsetCenter: [0, '50%'],       // x, y，单位px
-                      textStyle: {       // 其余属性默认使用全局文本样式，详见TEXTSTYLE
-                          fontWeight: 'bolder',
-                          color: '#fff'
-                      }
-                  },
-                  data:[{value: 40, name: 'km/h'}]
-              },
-              {
-                  name:'转速',
-                  type:'gauge',
-                  center : ['25%', '55%'],    // 默认全局居中
-                  radius : '30%',
-                  min:0,
-                  max:7,
-                  endAngle:45,
-                  splitNumber:7,
-                  axisLine: {            // 坐标轴线
-                      lineStyle: {       // 属性lineStyle控制线条样式
-                          color: [[0.29, 'lime'],[0.86, '#1e90ff'],[1, '#ff4500']],
-                          width: 2,
-                          shadowColor : '#fff', //默认透明
-                          shadowBlur: 10
-                      }
-                  },
-                  axisLabel: {            // 坐标轴小标记
-                      textStyle: {       // 属性lineStyle控制线条样式
-                          fontWeight: 'bolder',
-                          color: '#fff',
-                          shadowColor : '#fff', //默认透明
-                          shadowBlur: 10
-                      }
-                  },
-                  axisTick: {            // 坐标轴小标记
-                      length :12,        // 属性length控制线长
-                      lineStyle: {       // 属性lineStyle控制线条样式
-                          color: 'auto',
-                          shadowColor : '#fff', //默认透明
-                          shadowBlur: 10
-                      }
-                  },
-                  splitLine: {           // 分隔线
-                      length :20,         // 属性length控制线长
-                      lineStyle: {       // 属性lineStyle（详见lineStyle）控制线条样式
-                          width:3,
-                          color: '#fff',
-                          shadowColor : '#fff', //默认透明
-                          shadowBlur: 10
-                      }
-                  },
-                  pointer: {
-                      width:5,
-                      shadowColor : '#fff', //默认透明
-                      shadowBlur: 5
-                  },
-                  title : {
-                      offsetCenter: [0, '-30%'],       // x, y，单位px
-                      textStyle: {       // 其余属性默认使用全局文本样式，详见TEXTSTYLE
-                          fontWeight: 'bolder',
-                          fontStyle: 'italic',
-                          color: '#fff',
-                          shadowColor : '#fff', //默认透明
-                          shadowBlur: 10
-                      }
-                  },
-                  detail : {
-                      //backgroundColor: 'rgba(30,144,255,0.8)',
-                     // borderWidth: 1,
-                      borderColor: '#fff',
-                      shadowColor : '#fff', //默认透明
-                      shadowBlur: 5,
-                      width: 80,
-                      height:30,
-                      offsetCenter: [25, '20%'],       // x, y，单位px
-                      textStyle: {       // 其余属性默认使用全局文本样式，详见TEXTSTYLE
-                          fontWeight: 'bolder',
-                          color: '#fff'
-                      }
-                  },
-                  data:[{value: 1.5, name: 'x1000 r/min'}]
-              },
-              {
-                  name:'油表',
-                  type:'gauge',
-                  center : ['75%', '50%'],    // 默认全局居中
-                  radius : '30%',
-                  min:0,
-                  max:2,
-                  startAngle:135,
-                  endAngle:45,
-                  splitNumber:2,
-                  axisLine: {            // 坐标轴线
-                      lineStyle: {       // 属性lineStyle控制线条样式
-                          color: [[0.2, 'lime'],[0.8, '#1e90ff'],[1, '#ff4500']],
-                          width: 2,
-                          shadowColor : '#fff', //默认透明
-                          shadowBlur: 10
-                      }
-                  },
-                  axisTick: {            // 坐标轴小标记
-                      length :12,        // 属性length控制线长
-                      lineStyle: {       // 属性lineStyle控制线条样式
-                          color: 'auto',
-                          shadowColor : '#fff', //默认透明
-                          shadowBlur: 10
-                      }
-                  },
-                  axisLabel: {
-                      textStyle: {       // 属性lineStyle控制线条样式
-                          fontWeight: 'bolder',
-                          color: '#fff',
-                          shadowColor : '#fff', //默认透明
-                          shadowBlur: 10
-                      },
-                      formatter:function(v){
-                          switch (v + '') {
-                              case '0' : return 'E';
-                              case '1' : return 'Gas';
-                              case '2' : return 'F';
-                          }
-                      }
-                  },
-                  splitLine: {           // 分隔线
-                      length :15,         // 属性length控制线长
-                      lineStyle: {       // 属性lineStyle（详见lineStyle）控制线条样式
-                          width:3,
-                          color: '#fff',
-                          shadowColor : '#fff', //默认透明
-                          shadowBlur: 10
-                      }
-                  },
-                  pointer: {
-                      width:2,
-                      shadowColor : '#fff', //默认透明
-                      shadowBlur: 5
-                  },
-                  title : {
-                      show: false
-                  },
-                  detail : {
-                      show: false
-                  },
-                  data:[{value: 0.5, name: 'gas'}]
-              },
-              {
-                  name:'水表',
-                  type:'gauge',
-                  center : ['75%', '50%'],    // 默认全局居中
-                  radius : '30%',
-                  min:0,
-                  max:2,
-                  startAngle:315,
-                  endAngle:225,
-                  splitNumber:2,
-                  axisLine: {            // 坐标轴线
-                      lineStyle: {       // 属性lineStyle控制线条样式
-                          color: [[0.2, 'lime'],[0.8, '#1e90ff'],[1, '#ff4500']],
-                          width: 2,
-                          shadowColor : '#fff', //默认透明
-                          shadowBlur: 10
-                      }
-                  },
-                  axisTick: {            // 坐标轴小标记
-                      show: false
-                  },
-                  axisLabel: {
-                      textStyle: {       // 属性lineStyle控制线条样式
-                          fontWeight: 'bolder',
-                          color: '#fff',
-                          shadowColor : '#fff', //默认透明
-                          shadowBlur: 10
-                      },
-                      formatter:function(v){
-                          switch (v + '') {
-                              case '0' : return 'H';
-                              case '1' : return 'Water';
-                              case '2' : return 'C';
-                          }
-                      }
-                  },
-                  splitLine: {           // 分隔线
-                      length :15,         // 属性length控制线长
-                      lineStyle: {       // 属性lineStyle（详见lineStyle）控制线条样式
-                          width:3,
-                          color: '#fff',
-                          shadowColor : '#fff', //默认透明
-                          shadowBlur: 10
-                      }
-                  },
-                  pointer: {
-                      width:2,
-                      shadowColor : '#fff', //默认透明
-                      shadowBlur: 5
-                  },
-                  title : {
-                      show: false
-                  },
-                  detail : {
-                      show: false
-                  },
-                  data:[{value: 0.5, name: 'gas'}]
-              }
-          ]
-        };
-      };
 
 
       componentDidUpdate = async (prevProps)   => {
@@ -421,22 +152,50 @@ class DashboardPage extends React.Component {
             let options = this.state.options;
             let option = {};
           if(element.data.widget_type == 'line_chart'){
+            let labels = [];
+
+            for (let index = 0; index < res.data.data.labels.length; index++) {
+              // if()
+              const row = res.data.data.labels[index];
+              labels.push(moment.unix(row).format("HH:mm MM/DD/YY"));
+            }
             option = {
+                title: {
+                  text: 'Evolução da dívida'
+              },
+              grid: {
+                  left: '3%',
+                  right: '4%',
+                  bottom: '3%',
+                  containLabel: true
+              },
+                tooltip:{
+                  trigger: 'item',
+                  show: true
+                },
                 xAxis: {
-                  type: "category",
-                  data: res.data.data.labels
+                  type: 'category',
+                  boundaryGap: false,
+                  data: labels
                 },
                 yAxis: {
                   type: "value"
                 },
                 series: [{ 
                   data: res.data.data.values,
-                  type: "line"
+                  type: "line",
+                  tooltip: {
+                    formatter: '{c}'
+                  },
+                  name:'data'
                 }, 
               ]
             };
           }else if(element.data.widget_type == 'gauge'){
             option = {
+              // value:res.data.data.values[0],
+              // aggregation:element.data.aggregation,
+              // label:res.data.data.labels[0]
               tooltip: {
                   formatter: '{a} <br/>{b} : {c}'
               },
@@ -451,7 +210,7 @@ class DashboardPage extends React.Component {
                       name: element.data.aggregation,
                       type: 'gauge',
                       detail: {formatter: '{value}'},
-                      data: [{value: res.data.data.values[0], name: this.state.time_end  }]
+                      data: [{value: res.data.data.values[0], name: res.data.data.labels[0]/*this.state.time_end */ }]
                   }
               ]
           };
@@ -503,6 +262,7 @@ class DashboardPage extends React.Component {
         // this.setState({items:[]});
         console.log(data);
       }
+
       on_success = (data) =>{
         console.log('success',data);
         this.setState({submiting_add_widget:false});
@@ -521,9 +281,6 @@ class DashboardPage extends React.Component {
 
     
       generateDOM() {
-
-        
-        
         return this.state.items.map((value,index)=>{
           
 
@@ -537,18 +294,36 @@ class DashboardPage extends React.Component {
                         <i className="ki ki-bold-more-ver"></i>
                     </button>
                     <div className="dropdown-menu">
-                    <a className="dropdown-item" href="#">Delete</a>
+                    <a className="dropdown-item" href="#" onClick={()=>this.setState({widget_to_delete_index:index,delete_widget_modal:true})}>Delete</a>
                     </div>
                 </div>
 
               </div>
               </div>
               {
-                (this.state.items[index].data.widget_type == 'gauge' || this.state.items[index].data.widget_type == 'line_chart')
-                ?
+                this.state.items[index].data.widget_type == 'line_chart' &&
                 <ReactEchartsCore option={typeof this.state.options[index] == 'undefined' ? {} : this.state.options[index]} echarts={echarts} showLoading={typeof this.state.options[index] == 'undefined' ? true :false} />
-                :
-                this.state.items[index].data.text_content
+              }
+              {
+                this.state.items[index].data.widget_type == 'gauge' &&
+                // <GaugeChart id={"gauge-"+index}
+                //   nrOfLevels={20} 
+                //   percent={0.86} 
+                //   formatTextValue={value=>{
+                //    if(typeof this.state.options[index] == 'undefined'){
+                //     return '0';
+                //    }else{
+                //      return typeof this.state.options[index].value;
+                //    }
+                //   }}
+                  
+                // />
+                <ReactEchartsCore option={typeof this.state.options[index] == 'undefined' ? {} : this.state.options[index]} echarts={echarts} showLoading={typeof this.state.options[index] == 'undefined' ? true :false} />
+              }
+
+              {
+              this.state.items[index].data.widget_type == 'text' &&
+              this.state.items[index].data.text_content
               }
               
             </div>
@@ -562,38 +337,67 @@ class DashboardPage extends React.Component {
           return {
             x: item.x,
             y: item.y,
-            w: item.w,
+            w: this.props.isMobile ? 12 : item.w,
             h: item.h,
-            i: i.toString()
+            i: i.toString(),
+            isResizable:!this.props.isMobile
+            
           };
         });
       }
     
-      onLayoutChange(layout) {
-        this.save_on_layout_change(layout)
-      }
+      // onLayoutChange(layout) {
+      //   // this.save_on_layout_change(layout)
+      // }
 
       save_on_layout_change = (layout) => {
-        console.log(this.state);
+
         var new_items = [];
-        for (let index = 0; index < layout.length; index++) {
-          const lay = layout[index];
+        let layouts = layout;
+        // if(this.state.widget_to_delete_index !== null  && this.state.delete_widget_modal_loading == true){
+        //   layouts = layout.splice(this.state.widget_to_delete_index,1);
+        // }
+        
+        for (let index = 0; index < layouts.length; index++) {
+          const lay = layouts[index];
           console.log(lay);
           if(typeof this.state.items[index] === 'undefined'){
 
           }else{
-            new_items[index] = {
-              i:lay.i,
-              w:lay.w,
-              x:lay.x,
-              y:lay.y,
-              h:lay.h,
-              data:this.state.items[index].data,
+            if(!this.props.isMobile){
+              new_items[index] = {
+                i: index/*lay.i*/,
+                w:lay.w,
+                x:lay.x,
+                y:lay.y,
+                h:lay.h,
+                data:this.state.items[index].data,
+              }
+            }else{
+              new_items[index] = {
+                i:index/*lay.i*/,
+                w:this.state.layouts[index].w /*lay.w*/,
+                x:lay.x,
+                y:lay.y,
+                h:this.state.layouts[index].h /*lay.h*/,
+                data:this.state.items[index].data,
+              }
             }
+            
           }
           
         }
+        // this.setState({widget_to_delete_index:null,delete_widget_modal_loading:false});
         this.props.actions.dashboard.save_dashboard(new_items,this.on_success,this.on_failed);
+      }
+
+
+      delete_layout = async () =>{
+        this.setState({delete_widget_modal_loading:true});
+        const res = await axios.post(Url.API+"/dashboard/delete-widget",{index:this.state.widget_to_delete_index});
+        this.setState({delete_widget_modal_loading:false,delete_widget_modal:false,widget_to_delete_index:null});
+        this.props.actions.dashboard.get_dashboard_data(this.on_success_get_dashboard,this.on_failed_get_dashboard);
+        this.setState({layout:this.generateLayout()});
       }
 
 
@@ -759,14 +563,15 @@ class DashboardPage extends React.Component {
                   <div className="row" style={{marginTop:'25px',minHeight:'100vh'}}>
                     
                     <div className="col-md-12">
-                      <ReactGridLayout
+                      <ResponsiveReactGridLayout
                         layout={this.state.layout}
                         onLayoutChange={this.save_on_layout_change}
                         {...this.props}
+
                       >
                         {this.generateDOM()}
                         <span className="react-resizable-handle react-resizable-handle-se" style="touch-action: none;"></span>
-                      </ReactGridLayout>
+                      </ResponsiveReactGridLayout>
                     </div>
                 </div>
                 
@@ -794,6 +599,22 @@ class DashboardPage extends React.Component {
               dashboard={this.props.dashboard}
 
               />
+            </Modal.Body>
+          </Modal>
+
+          <Modal show={this.state.delete_widget_modal} onHide={()=>this.setState({delete_widget_modal:false})} >
+            <Modal.Header closeButton>
+              <Modal.Title>Delete Widget</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <p>Are you sure you want to delete this <b>{this.state.widget_to_delete_index !== null ? this.state.items[this.state.widget_to_delete_index].data.widget_title : ''}</b> ?</p>
+
+              <div className="modal-footer">
+                <button type="button" className="btn btn-light-primary font-weight-bold" onClick={()=>this.setState({delete_widget_modal:false})}>Cancel</button>
+                <button type="button" 
+                className={c("btn btn-primary font-weight-bold",{"spinner spinner-white spinner-right mr-3":this.state.delete_widget_modal_loading})} 
+                onClick={()=>this.delete_layout()}>Yes</button>
+              </div>
             </Modal.Body>
           </Modal>
                             
