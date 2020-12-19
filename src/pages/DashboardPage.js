@@ -386,7 +386,7 @@ class DashboardPage extends React.Component {
 
         this.props.actions.dashboard.save_dashboard(new_items,this.on_success,this.on_failed);
       }
-
+      //mantap
 
       delete_layout = async () =>{
         this.setState({delete_widget_modal_loading:true});
