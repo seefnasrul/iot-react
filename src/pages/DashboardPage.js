@@ -353,14 +353,10 @@ class DashboardPage extends React.Component {
       save_on_layout_change = (layout) => {
 
         var new_items = [];
-        let layouts = layout;
-        // if(this.state.widget_to_delete_index !== null  && this.state.delete_widget_modal_loading == true){
-        //   layouts = layout.splice(this.state.widget_to_delete_index,1);
-        // }
         
-        for (let index = 0; index < layouts.length; index++) {
-          const lay = layouts[index];
-          console.log(lay);
+        for (let index = 0; index < layout.length; index++) {
+          const lay = layout[index];
+
           if(typeof this.state.items[index] === 'undefined'){
 
           }else{
@@ -376,10 +372,10 @@ class DashboardPage extends React.Component {
             }else{
               new_items[index] = {
                 i:index/*lay.i*/,
-                w:this.state.layouts[index].w /*lay.w*/,
+                w:(typeof this.state.layouts[index] === 'undefined') ? lay.w : this.state.layouts[index].w,
                 x:lay.x,
                 y:lay.y,
-                h:this.state.layouts[index].h /*lay.h*/,
+                h:(typeof this.state.layouts[index] === 'undefined') ? lay.h : this.state.layouts[index].h,
                 data:this.state.items[index].data,
               }
             }
@@ -387,7 +383,7 @@ class DashboardPage extends React.Component {
           }
           
         }
-        // this.setState({widget_to_delete_index:null,delete_widget_modal_loading:false});
+
         this.props.actions.dashboard.save_dashboard(new_items,this.on_success,this.on_failed);
       }
 
