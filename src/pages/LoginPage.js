@@ -57,8 +57,8 @@ class LoginPage extends React.Component{
 
             <div className="d-flex flex-column flex-root" style={{height:'100vh'}}>
                 <Helmet>
-                    <title>Login - Finatech</title>
-                    <meta name="description" content="Login - Finatech" />
+                    <title>Login - Matoa.io</title>
+                    <meta name="description" content="Login - Matoa.io" />
                 </Helmet>
                 <div className="login login-5 login-signin-on d-flex flex-row-fluid" id="kt_login">
                     <div className="d-flex flex-center bgi-size-cover bgi-no-repeat flex-row-fluid" style={{backgroundImage: `url(${require("../assets_copy/media/bg/bg-2.jpg")})`}}>
@@ -72,34 +72,16 @@ class LoginPage extends React.Component{
 
                             <div className="login-signin">
                                 <div className="mb-20">
-                                    <h3 className="opacity-40 font-weight-normal">Sign In To Finatech</h3>
+                                    <h3 className="opacity-40 font-weight-normal">Sign In To Matoa.io</h3>
                                     <p className="opacity-40">Enter your details to login to your account:</p>
                                 </div>
 
 
                                 <LoginForm onSubmit={this.onPressSubmitButton} isLoading={this.state.isLoading} />
                                 
-                                {/* <div className="mt-10">
-                                    <span className="opacity-40 mr-4">Don't have an account yet?</span>
-                                    <a id="kt_login_signup" className="text-white opacity-30 font-weight-normal">Sign Up</a>
-                                </div> */}
+                                
                             </div>
 
-                            {/* <div className="login-forgot">
-                                <div className="mb-20">
-                                    <h3 className="opacity-40 font-weight-normal">Forgotten Password ?</h3>
-                                    <p className="opacity-40">Enter your email to reset your password</p>
-                                </div>
-                                <form className="form" id="kt_login_forgot_form">
-                                    <div className="form-group mb-10">
-                                        <input className="form-control h-auto text-white bg-white-o-5 rounded-pill border-0 py-4 px-8" type="text" placeholder="Email" name="email" autocomplete="off" />
-                                    </div>
-                                    <div className="form-group">
-                                        <button id="kt_login_forgot_submit" className="btn btn-pill btn-primary opacity-90 px-15 py-3 m-2">Request</button>
-                                        <button id="kt_login_forgot_cancel" className="btn btn-pill btn-outline-white opacity-70 px-15 py-3 m-2">Cancel</button>
-                                    </div>
-                                </form>
-                            </div> */}
 
                         </div>
                     </div>

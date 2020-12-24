@@ -21,22 +21,13 @@ import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 
 import { Modal, Tooltip } from 'react-bootstrap';
-import DateTimePicker from 'react-datetime-picker';
 import Switch from "react-switch";
-import GaugeChart from 'react-gauge-chart'
-import MediaQuery from 'react-responsive'
-import ReactEchartsCore from "echarts-for-react/lib/core";
-import echarts from "echarts/lib/echarts";
-import "echarts/lib/chart/line";
-import "echarts/lib/chart/gauge";
-import "echarts/lib/chart/bar";
-import "echarts/lib/chart/tree";
-import "echarts/lib/component/markArea";
+import ReactApexChart from "react-apexcharts";
 
 
 const c = require('classnames');
 const moment = require('moment');
-// const ReactGridLayout = WidthProvider(RGL);
+
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
 const customStyles = {
   content : {
@@ -48,15 +39,8 @@ const customStyles = {
 class DashboardPage extends React.Component {
 
     static defaultProps = {
-        // className: "layout",
-        // rowHeight: 30,
-        // cols: 12,
-        // y:5
-
         className: "layout",
-    rowHeight: 30,
-    // onLayoutChange: function() {},
-    // cols: { lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 },
+        rowHeight: 30,
       };
     
       constructor(props) {
@@ -64,7 +48,6 @@ class DashboardPage extends React.Component {
         this.state = { 
           layout:null,
           items: props.dashboard.data,
-          // timerange: props.dashboard.dashboard_timerange,
           time_start:null,
           time_end:null,
           realtime:false,
@@ -76,23 +59,9 @@ class DashboardPage extends React.Component {
           widget_to_delete_index:null,
           delete_widget_modal:false,
           delete_widget_modal_loading:false
-          // options:{
-          //   xAxis: {
-          //     type: "category",
-          //     data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-          //   },
-          //   yAxis: {
-          //     type: "value"
-          //   },
-          //   series: [{ 
-          //     data: [820, 932, 901, 934, 1290, 1330, 1320],
-          //     type: "line"
-          //   }, 
-          // ]
-          // }
         };
         this.echarts_react = null;
-        this.interval_realtime = null;
+        this.interval_realtime = false;
         console.log(props);
       }
 
@@ -110,16 +79,20 @@ class DashboardPage extends React.Component {
           });
           await this.get_widget_data();
           if(this.state.realtime){
-              if(this.interval_realtime !== null){
-                clearInterval(this.interval_realtime);
+              
+              if(this.interval_realtime == false){
+                console.log('interval inisiate',this.interval_realtime);
+                // clearInterval(this.interval_realtime);
+                this.interval_realtime = setInterval(async ()=>{
+                  await this.setState({time_end:new Date().toISOString().slice(0, 19).replace('T', ' ')});
+                  this.get_widget_data();
+                },1000);
               }
-              this.interval_realtime = setInterval(async ()=>{
-                await this.setState({time_end:new Date().toISOString().slice(0, 19).replace('T', ' ')});
-                this.get_widget_data();
-              },3000);
+              
           }else{
             // if(this.interval_realtime !== null) {
               clearInterval(this.interval_realtime);
+              this.interval_realtime = false;
             // }
             
           }
@@ -160,60 +133,162 @@ class DashboardPage extends React.Component {
               labels.push(moment.unix(row).format("HH:mm MM/DD/YY"));
             }
             option = {
-                title: {
-                  text: 'Evolução da dívida'
-              },
-              grid: {
-                  left: '3%',
-                  right: '4%',
-                  bottom: '3%',
-                  containLabel: true
-              },
-                tooltip:{
-                  trigger: 'item',
-                  show: true
-                },
-                xAxis: {
-                  type: 'category',
-                  boundaryGap: false,
-                  data: labels
-                },
-                yAxis: {
-                  type: "value"
-                },
-                series: [{ 
-                  data: res.data.data.values,
-                  type: "line",
-                  tooltip: {
-                    formatter: '{c}'
+
+              series: [
+                {
+                  name:element.data.aggregation,// "Low - 2013",
+                  data: res.data.data.values
+                }
+              ],
+              options: {
+                chart: {
+                  // height: 350,
+                  type: 'line',
+                  dropShadow: {
+                    enabled: true,
+                    color: '#000',
+                    top: 18,
+                    left: 7,
+                    blur: 10,
+                    opacity: 0.2
                   },
-                  name:'data'
-                }, 
-              ]
+                  toolbar: {
+                    show: false
+                  }
+                },
+                colors: ['#77B6EA', '#545454'],
+                dataLabels: {
+                  enabled: true,
+                },
+                stroke: {
+                  curve: 'smooth'
+                },
+                // title: {
+                //   text: 'Average High & Low Temperature',
+                //   align: 'left'
+                // },
+                grid: {
+                  borderColor: '#e7e7e7',
+                  row: {
+                    colors: ['#f3f3f3', 'transparent'], 
+                    opacity: 0.5
+                  },
+                },
+                markers: {
+                  size: 1
+                },
+                xaxis: {
+                  categories: labels, 
+                  title: {
+                    text: 'Time'
+                  }
+                },
+                yaxis: {
+                  title: {
+                    text: res.data.data.field_type
+                  },
+                },
+                legend: {
+                  position: 'top',
+                  horizontalAlign: 'right',
+                  floating: true,
+                  offsetY: -25,
+                  offsetX: -5
+                }
+              },
             };
           }else if(element.data.widget_type == 'gauge'){
+            console.log('gauge',element.data);
+            let max_val = parseInt(element.data.gauge_range_value_max);
+            let percentage = 0;
+            if(res.data.data.values[0] >= max_val){
+              percentage = 100;
+            }else{
+              percentage = (res.data.data.values[0]/max_val)*100;
+            }
+             
+
             option = {
-              // value:res.data.data.values[0],
-              // aggregation:element.data.aggregation,
-              // label:res.data.data.labels[0]
-              tooltip: {
-                  formatter: '{a} <br/>{b} : {c}'
-              },
-              toolbox: {
-                  feature: {
-                      restore: {},
-                      saveAsImage: {}
+              
+              series: [percentage],
+              labels:['Progress'],
+              options: {
+                chart: {
+                  type: 'radialBar',
+                  offsetY: -20,
+                  sparkline: {
+                    enabled: true
                   }
-              },
-              series: [
-                  {
-                      name: element.data.aggregation,
-                      type: 'gauge',
-                      detail: {formatter: '{value}'},
-                      data: [{value: res.data.data.values[0], name: res.data.data.labels[0]/*this.state.time_end */ }]
+                },
+                plotOptions: {
+                  radialBar: {
+                    startAngle: -90,
+                    endAngle: 90,
+                    track: {
+                      background: "#e7e7e7",
+                      strokeWidth: '97%',
+                      margin: 5, // margin is in pixels
+                      dropShadow: {
+                        enabled: true,
+                        top: 2,
+                        left: 0,
+                        color: '#999',
+                        opacity: 1,
+                        blur: 2
+                      }
+                    },
+                    dataLabels: {
+                      name: {
+                        show: false
+                      },
+                      // value: {
+                      //   offsetY: -2,
+                      //   fontSize: '22px'
+                      // },
+                      value: {
+                        show: true,
+                        fontSize: '14px',
+                        fontFamily: undefined,
+                        fontWeight: 400,
+                        color: undefined,
+                        offsetY: 16,
+                        formatter: function (val) {
+                          return res.data.data.values[0]+' '+res.data.data.field_type
+                        }
+                      },
+                    }
                   }
-              ]
-          };
+                },
+                grid: {
+                  padding: {
+                    top: -10
+                  }
+                },
+                fill: {
+                  type: 'gradient',
+                  gradient: {
+                    shade: 'light',
+                    shadeIntensity: 0.4,
+                    inverseColors: false,
+                    opacityFrom: 1,
+                    opacityTo: 1,
+                    stops: [0, 50, 53, 91]
+                  },
+                },
+                labels: ['asdasd'],
+              },
+            
+            
+            };
+ 
+            // option = {
+            //   minValue:element.data.gauge_range_value_min,
+            //   maxValue:element.data.gauge_range_value_max,
+            //   value:res.data.data.values[0],
+            //   labels:res.data.data.labels[0],
+            //   field_type:res.data.data.field_type,
+            //   aggregation:element.data.aggregation,
+            // };
           }
 
             options[index] = option;
@@ -277,7 +352,29 @@ class DashboardPage extends React.Component {
       }
 
 
+      charts = (index) =>{
+        if(this.state.options[index] == 'undefined'){
+          return <div>Loading...</div>
+        }
+        if(this.state.items[index].data.widget_type == 'line_chart'){
+            return <ReactApexChart options={typeof this.state.options[index] == 'undefined' ? {} : this.state.options[index].options} series={typeof this.state.options[index] == 'undefined' ? {} : this.state.options[index].series} type="line" height={350} />
+        }
 
+        if(this.state.items[index].data.widget_type == 'gauge'){
+          return <div style={{display:'flex',flexDirection:'column',marginTop:'20px'}}>
+            <ReactApexChart options={typeof this.state.options[index] == 'undefined' ? {} : this.state.options[index].options} series={typeof this.state.options[index] == 'undefined' ? {} : this.state.options[index].series} type="radialBar" height={350} />
+            <div style={{flexDirection:'row',justifyContent:'space-between',alignItems:'center',width:'100%',display:'flex'}}>
+              <div style={{fontWeight:'bold'}}>Min:{this.state.items[index].data.gauge_range_value_min}</div><div style={{fontWeight:'bold'}}>Max:{this.state.items[index].data.gauge_range_value_max}</div>
+              </div>
+          </div>
+        }
+
+        if(this.state.items[index].data.widget_type == 'text'){
+          return this.state.items[index].data.text_content;
+        }
+        
+        
+      }
 
     
       generateDOM() {
@@ -300,31 +397,11 @@ class DashboardPage extends React.Component {
 
               </div>
               </div>
-              {
-                this.state.items[index].data.widget_type == 'line_chart' &&
-                <ReactEchartsCore option={typeof this.state.options[index] == 'undefined' ? {} : this.state.options[index]} echarts={echarts} showLoading={typeof this.state.options[index] == 'undefined' ? true :false} />
-              }
-              {
-                this.state.items[index].data.widget_type == 'gauge' &&
-                // <GaugeChart id={"gauge-"+index}
-                //   nrOfLevels={20} 
-                //   percent={0.86} 
-                //   formatTextValue={value=>{
-                //    if(typeof this.state.options[index] == 'undefined'){
-                //     return '0';
-                //    }else{
-                //      return typeof this.state.options[index].value;
-                //    }
-                //   }}
-                  
-                // />
-                <ReactEchartsCore option={typeof this.state.options[index] == 'undefined' ? {} : this.state.options[index]} echarts={echarts} showLoading={typeof this.state.options[index] == 'undefined' ? true :false} />
-              }
 
-              {
-              this.state.items[index].data.widget_type == 'text' &&
-              this.state.items[index].data.text_content
-              }
+              {this.charts(index)}
+            
+          
+              
               
             </div>
           );
@@ -458,7 +535,7 @@ class DashboardPage extends React.Component {
         const {header} = this.props;
         return (
           <React.Fragment>
-            <div className="subheader py-2 py-lg-4 subheader-solid" id="kt_subheader" style={{marginTop:'40px'}}>
+            <div className="subheader py-2 py-lg-4 subheader-solid" id="kt_subheader" >
               <div className="container-fluid d-flex align-items-center justify-content-between flex-wrap flex-sm-nowrap">
                             
                 <div className="d-flex align-items-center flex-wrap mr-2">
@@ -475,105 +552,34 @@ class DashboardPage extends React.Component {
                   </a>
 
                                     
-                  <a href="#"  className="btn btn-clean btn-sm font-weight-bold font-size-base mr-1" 
-                   ><i className="icon-2x text-dark-50 flaticon2-add-square"  onClick={this.open_modal}></i></a>
+                  <a href="#"  className="btn btn-icon btn-circle btn-xl btn-primary shadow my-2" 
+                   >
+                     <i className="text-primary-50 flaticon2-plus p-3"  onClick={this.open_modal}></i>
+                     </a>
 
-									<div className="dropdown dropdown-inline" data-toggle="tooltip" title="" data-placement="left" data-original-title="Widget Menu">
-										<a href="#" className="btn btn-sm btn-clean btn-icon" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                            <i className="icon-2x text-dark-50 flaticon-more"></i>
-										</a>
-										<div className="dropdown-menu p-0 m-0 dropdown-menu-md dropdown-menu-right py-3" >
-											<ul className="navi navi-hover py-5">
-												<li className="navi-item">
-													<a href="#" className="navi-link">
-														<span className="navi-icon">
-															<i className="flaticon2-drop"></i>
-														</span>
-														<span className="navi-text">New Group</span>
-													</a>
-												</li>
-												<li className="navi-item">
-													<a href="#" className="navi-link">
-														<span className="navi-icon">
-															<i className="flaticon2-list-3"></i>
-														</span>
-														<span className="navi-text">Contacts</span>
-													</a>
-												</li>
-												<li className="navi-item">
-													<a href="#" className="navi-link">
-														<span className="navi-icon">
-															<i className="flaticon2-rocket-1"></i>
-														</span>
-														<span className="navi-text">Groups</span>
-														<span className="navi-link-badge">
-															<span className="label label-light-primary label-inline font-weight-bold">new</span>
-														</span>
-													</a>
-												</li>
-												<li className="navi-item">
-													<a href="#" className="navi-link">
-														<span className="navi-icon">
-															<i className="flaticon2-bell-2"></i>
-														</span>
-														<span className="navi-text">Calls</span>
-													</a>
-												</li>
-												<li className="navi-item">
-													<a href="#" className="navi-link">
-														<span className="navi-icon">
-															<i className="flaticon2-gear"></i>
-														</span>
-														<span className="navi-text">Settings</span>
-													</a>
-												</li>
-												<li className="navi-separator my-3"></li>
-												<li className="navi-item">
-													<a href="#" className="navi-link">
-														<span className="navi-icon">
-															<i className="flaticon2-magnifier-tool"></i>
-														</span>
-														<span className="navi-text">Help</span>
-													</a>
-												</li>
-												<li className="navi-item">
-													<a href="#" className="navi-link">
-														<span className="navi-icon">
-															<i className="flaticon2-bell-2"></i>
-														</span>
-														<span className="navi-text">Privacy</span>
-														<span className="navi-link-badge">
-															<span className="label label-light-danger label-rounded font-weight-bold">5</span>
-														</span>
-													</a>
-												</li>
-											</ul>
-										</div>
-									</div>
 								</div>
                                 
               </div>
             </div>
                            
-            <div className="d-flex flex-column-fluid">
-              <div className="container" style={{minHeight:'100vh'}}>
-                  <div className="row" style={{marginTop:'25px',minHeight:'100vh'}}>
+            {/* <div className="d-flex flex-column-fluid">
+              <div className="container" style={{minHeight:'100vh'}}> */}
+                  <div className="row" style={{marginTop:'0px',minHeight:'100vh'}}>
                     
                     <div className="col-md-12">
                       <ResponsiveReactGridLayout
                         layout={this.state.layout}
                         onLayoutChange={this.save_on_layout_change}
                         {...this.props}
-
                       >
                         {this.generateDOM()}
                         <span className="react-resizable-handle react-resizable-handle-se" style="touch-action: none;"></span>
                       </ResponsiveReactGridLayout>
                     </div>
-                </div>
+                  </div>
                 
-              </div>
-          </div>
+              {/* </div>
+          </div> */}
 
           <Modal show={this.state.add_widget_modal} onHide={this.close_modal} >
             <Modal.Header closeButton>
@@ -896,7 +902,6 @@ const TimeRangeForm = (props) =>{
       <form className="form" id="kt_login_signin_form" onSubmit={formik.handleSubmit}>
           <div className="modal-body">
             <div className="form-group">
-              {formik.values.time_start}
               <label for="exampleSelect2">Time Start<span className="text-danger">*</span></label>
               <input 
                 type="datetime-local" 
@@ -917,7 +922,6 @@ const TimeRangeForm = (props) =>{
               }
             </div>
             <div className="form-group">
-              {formik.values.time_end}
               <label for="exampleSelect2">Time End<span className="text-danger">*</span></label>
               <input 
                 type="datetime-local" 

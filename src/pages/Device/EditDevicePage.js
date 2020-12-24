@@ -91,7 +91,7 @@ function EditDevicePage(props) {
         ?
         <Redirect to={redirect} />
         :
-        <div className="row" style={{marginTop:'25px'}}>
+        <div className="row" >
             <div className="col-md-12">
             <div className="card card-custom gutter-b example example-compact">
                 <div className="card-header">

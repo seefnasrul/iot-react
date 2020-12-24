@@ -7,7 +7,6 @@ import setupAxios from './setupAxios';
 import axios from 'axios';
 
 import LoginPage from './pages/LoginPage'
-import RegisterPage from "./pages/RegisterPage";
 
 
 import {applyMiddleware, compose, createStore} from 'redux';
@@ -18,17 +17,7 @@ import rootSaga from './redux/sagas/rootSaga';
 import {PersistGate} from 'redux-persist/integration/react';
 import Main from './layouts/Main';
 import DashboardPage from './pages/DashboardPage';
-import PaketListPage from './pages/PaketListPage';
-import TryoutListPage from "./pages/TryoutListPage";
-import PaketDetailPage from "./pages/PaketDetailPage";
-import TryoutDetailPage from "./pages/TryoutDetailPage";
-import ExamPage from "./pages/ExamPage";
-import ResultPage from "./pages/ResultPage";
-import ResultListPage from "./pages/ResultListPage";
-import YourPaketListPage from "./pages/YourPaketListPage";
 import ProfilePage from "./pages/ProfilePage";
-import MidtransPage from "./pages/MidtransPage";
-import OrderHistoryPage from "./pages/OrderHistoryPage";
 import DevicesPage from './pages/Device/DevicesPage';
 import CreateDevicePage from './pages/Device/CreateDevicePage';
 import ImportScript from './ImportScript'; 
@@ -38,6 +27,19 @@ import EditDevicePage from './pages/Device/EditDevicePage';
 import ViewDevicePage from './pages/Device/ViewDevicePage';
 import DeviceLogListPage from './pages/Device/DeviceLogListPage';
 import { useMediaQuery } from 'react-responsive';
+import { createMuiTheme } from '@material-ui/core/styles';
+import { ThemeProvider } from '@material-ui/core/styles';
+import Color from './constants/Color';
+const theme = createMuiTheme({
+  palette: {
+    primary: {
+      main: Color.primary,
+    },
+    secondary: {
+      main:  Color.seconday,
+    },
+  },
+});
 
 export const history = createBrowserHistory({ forceRefresh: true });
 const persistConfig = {
@@ -61,7 +63,7 @@ setupAxios(axios,store,history);
 export default function App() {
     const isMobile = useMediaQuery({ query: `(max-width: 760px)` });
     return (
-        
+        <ThemeProvider theme={theme}>
         <Provider store={store}>
             <PersistGate loading={null} persistor={persistor}>
                 <Router history={history} >
@@ -70,9 +72,6 @@ export default function App() {
                         
                         <Route path="/login">
                             <LoginPage/>
-                        </Route>
-                        <Route path="/register">
-                            <RegisterPage/>
                         </Route>
 
                         <Route exact path="/">
@@ -99,28 +98,9 @@ export default function App() {
                             <Main route="/device/:id/logs" content={<DeviceLogListPage/>} header="Device Logs"/>
                         </PrivateRoute>
 
-                        {/* <PrivateRoute path="/devices" children={<Devices />}/> */}
-
-
-                        <PrivateRoute path="/paketmu">
-                            <Main route="/paketmu" content={<YourPaketListPage/>} header="Paket Milikmu"/>
-                        </PrivateRoute>
-                        <PrivateRoute path="/order-history" children={<History />}/>
                         <PrivateRoute path="/profile">
                             <Main route="/profile" content={<ProfilePage />} header="Profile"/>
                         </PrivateRoute>
-                        <PrivateRoute path="/pakets">
-                            <Main route="/pakets" content={<PaketListPage/>} header="Paket List"/>
-                        </PrivateRoute>
-                        <PrivateRoute path="/paket/:slug" children={<DetailPaket/>}/>
-                        <PrivateRoute path="/tryouts">
-                            <Main route="/tryouts" content={<TryoutListPage/>} header="Daftar Tryout"/>
-                        </PrivateRoute>
-                        <PrivateRoute path="/tryout/:quid" children={<DetailTryout/>}/>
-                        <PrivateRoute exact path="/exam/:quid" children={<Exam/>}/>
-                        <PrivateRoute path="/results" children={<ResultList/>}/>
-                        <PrivateRoute path="/result/:rid" children={<ResultExam/>}/>
-                        <PrivateRoute path="/payment/:gid" children={<Midtrans />}/>
 
                         <Route path="*">
                             <NoPage/>
@@ -132,6 +112,7 @@ export default function App() {
                 </Router>
             </PersistGate>
         </Provider>
+        </ThemeProvider>
     );
 }
 
@@ -175,67 +156,11 @@ function NoPage() {
 }
 
 
-function DetailPaket() {
-    let param = useParams();
-    let history = useHistory();
-    return (
-        <Main route="/paket/:slug" content={<PaketDetailPage history={history} param={param}/>} header="Detail Paket"/>
-    )
-}
-
-function DetailTryout() {
-    let param = useParams();
-    let history = useHistory();
-    return (
-        <Main route="/tryout/:quid" content={<TryoutDetailPage history={history} param={param}/>}
-              header="Detail Tryout"/>
-    )
-}
-
-function Exam() {
-    let param = useParams();
-    let history = useHistory();
-    return (
-        <ExamPage history={history} param={param}/>
-    )
-}
-
-function ResultExam() {
-    let param = useParams();
-    let history = useHistory();
-    return (
-        <Main route="/result/:rid" content={<ResultPage history={history} param={param}/>} header="Hasil Ujian"/>
-    )
-}
-
-function ResultList() {
-    let history = useHistory();
-    return (
-        <Main route="/results" content={<ResultListPage history={history}/>} header="Daftar Hasil Ujian"/>
-    )
-}
-
-function Midtrans() {
-    let history = useHistory();
-    let param = useParams();
-    return (
-        <Main route="/midtrans/:gid" content={<MidtransPage param={param} history={history}/>} header="Pembayaran"/>
-    )
-}
 
 function Devices() {
     let history = useHistory();
     let param = useParams();
     return (
         <Main route="/devices" content={<DevicesPage param={param} history={history}/>} header="Device List"/>
-    )
-}
-
-
-function History() {
-    let history = useHistory();
-    let param = useParams();
-    return (
-        <Main route="/order-history" content={<OrderHistoryPage param={param} history={history}/>} header="Riwayat Pembelian"/>
     )
 }

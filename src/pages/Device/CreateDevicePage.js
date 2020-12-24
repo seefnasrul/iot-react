@@ -62,7 +62,7 @@ function CreateDevicePage(props) {
         (redirect) ?
         <Redirect to={redirect} />
         :
-        <div className="row" style={{marginTop:'25px'}}>
+        <div className="row" >
             <div className="col-md-12">
             <ToastContainer
                 position="top-center"

@@ -81,7 +81,7 @@ class DeviceLogList extends React.Component {
 
   render() {
     return (
-        <div className="card card-custom" style={{marginTop:'25px'}}>
+        <div className="card card-custom">
 			<div className="card-header">
 				<div className="card-title">
 					<span className="card-icon">
