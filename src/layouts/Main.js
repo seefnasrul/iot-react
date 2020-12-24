@@ -218,10 +218,10 @@ class Main extends React.Component {
                     <div style={customStyles.profile.topProfile}>
                         <Grid container direction="row" alignItems="center" justify="flex-end">
                             <Grid item xs={9}>
-                            <Typography style={{color:'#fff',fontSize:12,fontWeight:'bold',textAlign:'right'}}>{this.props?.user_data.email}</Typography>
+                            <Typography style={{color:'#fff',fontSize:12,fontWeight:'bold',textAlign:'right'}}>{(typeof this.props.user_data.email === 'undefined') ? '' :this.props?.user_data.email}</Typography>
                             </Grid>
                             <Grid item xs={3}>
-                            <Avatar className={classes.orange} style={{marginLeft:20}}>{this.props?.user_data.name.charAt(0).toUpperCase()}</Avatar>
+                            <Avatar className={classes.orange} style={{marginLeft:20}}>{(typeof this.props.user_data.email === 'undefined') ? '' :this.props?.user_data.name.charAt(0).toUpperCase()}</Avatar>
                             </Grid>
                         </Grid>
                     </div>
@@ -259,7 +259,7 @@ class Main extends React.Component {
                             style={{position:'absolute',right:10}}
                             // edge="end"
                         >
-                            <Avatar className={classes.orange}>{this.props.user_data.name.charAt(0).toUpperCase()}</Avatar>
+                            <Avatar className={classes.orange}>{(typeof this.props.user_data.email === 'undefined') ? '' :this.props.user_data.name.charAt(0).toUpperCase()}</Avatar>
                             {/* <AccountCircle /> */}
                         </IconButton> 
                     </Toolbar>
