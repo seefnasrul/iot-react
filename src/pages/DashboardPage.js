@@ -92,7 +92,7 @@ class DashboardPage extends React.Component {
                     }
                   
                   console.log('state realtime',this.state.realtime);
-                },1000);
+                },2000);
               }
               
           }else{
