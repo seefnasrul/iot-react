@@ -30,6 +30,9 @@ import { useMediaQuery } from 'react-responsive';
 import { createMuiTheme } from '@material-ui/core/styles';
 import { ThemeProvider } from '@material-ui/core/styles';
 import Color from './constants/Color';
+import './assets_copy/css/style.bundle.min.css';
+import './assets_copy/plugins/global/plugins.bundle.css';
+import './App.css';
 const theme = createMuiTheme({
   palette: {
     primary: {

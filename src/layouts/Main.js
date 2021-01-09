@@ -124,6 +124,7 @@ class Main extends React.Component {
         console.log('LOGOUT PRESSED')
         localStorage.clear();
         this.props.actions.auth.unset_auth();
+        window.location.reload();
     };
 
 

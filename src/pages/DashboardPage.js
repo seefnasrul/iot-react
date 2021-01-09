@@ -23,6 +23,7 @@ import 'react-resizable/css/styles.css';
 import { Modal, Tooltip } from 'react-bootstrap';
 import Switch from "react-switch";
 import ReactApexChart from "react-apexcharts";
+import Spinner from '../components/Spinner';
 
 
 const c = require('classnames');
@@ -51,6 +52,7 @@ class DashboardPage extends React.Component {
           time_start:null,
           time_end:null,
           realtime:false,
+          type:null,
           add_widget_modal:false,
           submiting_add_widget:false,
           time_range_modal:false,
@@ -58,70 +60,128 @@ class DashboardPage extends React.Component {
           options:[],
           widget_to_delete_index:null,
           delete_widget_modal:false,
-          delete_widget_modal_loading:false
+          delete_widget_modal_loading:false,
+          compactType: "vertical",
+          currentBreakpoint: "lg",
+          layouts: { },
+          dashboard_loading:true,
         };
         this.echarts_react = null;
         this.interval_realtime = false;
         console.log(props);
       }
 
-
+      componentDidMount = async () =>{
+        this.props.actions.dashboard.get_dashboard_data(this.on_success_get_dashboard,this.on_failed_get_dashboard);
+        this.setState({layout:this.generateLayout()});
+      }
 
       componentDidUpdate = async (prevProps)   => {
         if(this.props.dashboard !== prevProps.dashboard) // Check if it's a new user, you can also use some unique property, like the ID  (this.props.user.id !== prevProps.user.id)
         {
           let dashboard = this.props.dashboard;
+
           await this.setState({
             items:dashboard.data,
-            time_start:dashboard.time_start,
-            time_end:dashboard.time_end,
             realtime:dashboard.realtime,
+            type:dashboard.type,
+            ...this.get_time_range()
           });
           await this.get_widget_data();
           if(this.state.realtime){
               
               if(this.interval_realtime == false){
-                console.log('interval inisiate',this.interval_realtime);
-                // clearInterval(this.interval_realtime);
-                this.interval_realtime = setInterval(async ()=>{
-                  await this.setState({time_end:new Date().toISOString().slice(0, 19).replace('T', ' ')});
+
+                if(this.state.type == "custom"){
+                  this.interval_realtime = setInterval(async ()=>{
+                    await this.setState({time_end:new Date().toISOString().slice(0, 19).replace('T', ' ')});
                     if(this.state.realtime == false){
                       clearInterval(this.interval_realtime);
                     }else{
                       this.get_widget_data();
                     }
-                  
-                  console.log('state realtime',this.state.realtime);
-                },2000);
+                  },2000);
+                }else{
+                  this.interval_realtime = setInterval(async ()=>{
+                    await this.setState({...this.get_time_range()});
+                    if(this.state.realtime == false){
+                      clearInterval(this.interval_realtime);
+                    }else{
+                      this.get_widget_data();
+                    }
+                  },2000);
+                }
               }
-              
           }else{
-            // if(this.interval_realtime !== null) {
               clearInterval(this.interval_realtime);
               this.interval_realtime = false;
-            // }
-            
           }
           this.setState({layout:this.generateLayout()});
         }
       }
 
       componentWillUnmount = () =>{
-        // if(this.interval_realtime !== null) {
-          clearInterval(this.interval_realtime);
-        // }
+        clearInterval(this.interval_realtime);
+      }
+
+      get_time_range = () => {
+        
+        let {dashboard} = this.props;
+
+        if(dashboard.type == "custom"){
+          return {
+            time_start:dashboard.time_start,
+            time_end:dashboard.time_end,
+          };
+        }
+
+        var de = new Date();
+        var ds = new Date();
+        
+        var minus = 0;
+        switch (dashboard.type) {
+          case 'last_1_hour':
+            minus = 1;
+            break;
+          case 'last_3_hour':
+            minus = 3;
+            break;
+          case 'last_12_hour':
+            minus = 12;
+            break;
+          case 'last_24_hour':
+            minus = 24;
+            break;
+          case 'last_one_week':
+            minus = 7*24;
+            break;
+          default:
+            break;
+        }
+
+        ds.setHours(ds.getHours() - minus);
+
+        return {
+          time_start:ds,//moment(ds).format('YYYY-MM-DD HH:mm:ss'),
+          time_end:de//moment(de).format('YYYY-MM-DD HH:mm:ss'),
+        }
+
       }
       
       
       get_widget_data = async () =>{
+        // this.setState({layout:this.generateLayout()});
         for (let index = 0; index < this.state.items.length; index++) {
           const element = this.state.items[index];
           if(element.data.widget_type == 'line_chart' || element.data.widget_type == 'gauge'){
             console.log(element.data);
+
+            
+
             var res = await axios.get(Url.API+'/dashboard/get-widget-data',{
               params:{
-              time_start:this.state.time_start,
-              time_end:this.state.time_end,
+              time_start:moment.utc(this.state.time_start).format('YYYY-MM-DD HH:mm:ss'),
+              time_end:moment.utc(this.state.time_end).format('YYYY-MM-DD HH:mm:ss'),
               type:element.data.widget_type,
               device_serial_id:element.data.device_serial_id,
               device_field:element.data.device_field_name,
@@ -221,9 +281,9 @@ class DashboardPage extends React.Component {
               options: {
                 chart: {
                   type: 'radialBar',
-                  offsetY: -20,
+                  offsetY: -10,
                   sparkline: {
-                    enabled: true
+                    enabled: false
                   }
                 },
                 plotOptions: {
@@ -233,7 +293,7 @@ class DashboardPage extends React.Component {
                     track: {
                       background: "#e7e7e7",
                       strokeWidth: '97%',
-                      margin: 5, // margin is in pixels
+                      margin: 1, // margin is in pixels
                       dropShadow: {
                         enabled: true,
                         top: 2,
@@ -309,12 +369,7 @@ class DashboardPage extends React.Component {
         
       }
 
-      componentDidMount = async () =>{
-        this.props.actions.dashboard.get_dashboard_data(this.on_success_get_dashboard,this.on_failed_get_dashboard);
-        
-        this.setState({layout:this.generateLayout()});
-      }
-
+      
       add_new_grid = async (form_data) => {
         this.setState({submiting_add_widget:true});
         var {items} = this.state;
@@ -334,14 +389,12 @@ class DashboardPage extends React.Component {
       }
 
       on_success_get_dashboard = (data) =>{
-        // this.setState({items:[]});
-        console.log(data);
+        this.setState({dashboard_loading:false})
       }
 
       
       on_failed_get_dashboard = (data) =>{
-        // this.setState({items:[]});
-        console.log(data);
+        this.setState({dashboard_loading:false})
       }
 
       on_success = (data) =>{
@@ -363,12 +416,12 @@ class DashboardPage extends React.Component {
           return <div>Loading...</div>
         }
         if(this.state.items[index].data.widget_type == 'line_chart'){
-            return <ReactApexChart options={typeof this.state.options[index] == 'undefined' ? {} : this.state.options[index].options} series={typeof this.state.options[index] == 'undefined' ? {} : this.state.options[index].series} type="line" height={350} />
+            return <ReactApexChart options={typeof this.state.options[index] == 'undefined' ? {} : this.state.options[index].options} series={typeof this.state.options[index] == 'undefined' ? {} : this.state.options[index].series} type="line" width="100%" height="85%"  />
         }
 
         if(this.state.items[index].data.widget_type == 'gauge'){
-          return <div style={{display:'flex',flexDirection:'column',marginTop:'20px'}}>
-            <ReactApexChart options={typeof this.state.options[index] == 'undefined' ? {} : this.state.options[index].options} series={typeof this.state.options[index] == 'undefined' ? {} : this.state.options[index].series} type="radialBar" height={350} />
+          return <div style={{height:'100%',marginTop:'20px'}}>
+            <ReactApexChart options={typeof this.state.options[index] == 'undefined' ? {} : this.state.options[index].options} series={typeof this.state.options[index] == 'undefined' ? {} : this.state.options[index].series} type="radialBar" height="120%" />
             <div style={{flexDirection:'row',justifyContent:'space-between',alignItems:'center',width:'100%',display:'flex'}}>
               <div style={{fontWeight:'bold'}}>Min:{this.state.items[index].data.gauge_range_value_min}</div><div style={{fontWeight:'bold'}}>Max:{this.state.items[index].data.gauge_range_value_max}</div>
               </div>
@@ -429,10 +482,6 @@ class DashboardPage extends React.Component {
           };
         });
       }
-    
-      // onLayoutChange(layout) {
-      //   // this.save_on_layout_change(layout)
-      // }
 
       save_on_layout_change = (layout) => {
 
@@ -468,9 +517,10 @@ class DashboardPage extends React.Component {
           
         }
 
-        this.props.actions.dashboard.save_dashboard(new_items,this.on_success,this.on_failed);
+        // this.props.actions.dashboard.save_dashboard(new_items,this.on_success,this.on_failed);
+        if(!this.props.isMobile){this.props.actions.dashboard.save_dashboard(new_items,this.on_success,this.on_failed);}
+        this.setState({layout:this.generateLayout()});
       }
-      //mantap
 
       delete_layout = async () =>{
         this.setState({delete_widget_modal_loading:true});
@@ -514,13 +564,16 @@ class DashboardPage extends React.Component {
 
       submit_timerange = (form_data) =>{
         this.setState({submiting_time_range_modal:true});
-        let submit_data = {
-          time_start:moment(form_data.time_start,'YYYY-MM-DDTHH:mm').format('YYYY-MM-DD HH:mm:ss'),
-          time_end:moment(form_data.time_end,'YYYY-MM-DDTHH:mm').format('YYYY-MM-DD HH:mm:ss'),
-          realtime:form_data.realtime,
+        let submit_data = {...form_data};
+
+        if(form_data.type == "custom"){
+          submit_data.time_start = moment(form_data.time_start,'YYYY-MM-DDTHH:mm').format('YYYY-MM-DD HH:mm:ss');
+          submit_data.time_end = moment(form_data.time_end,'YYYY-MM-DDTHH:mm').format('YYYY-MM-DD HH:mm:ss');
         }
+
         // console.log(submit_data);
         this.props.actions.dashboard.save_dashboard_timerange(submit_data,this.success_save_timerange,this.failed_save_timerange);
+        return 1;
       }
 
       success_save_timerange = (data) =>{
@@ -535,11 +588,41 @@ class DashboardPage extends React.Component {
         this.close_modal_timerange();
       }
 
-    
+      onBreakpointChange = (breakpoint) => {
+        this.setState({
+          currentBreakpoint: breakpoint
+        });
+        console.log(breakpoint);
+      }
+
+      timer_ui = () =>{
+        let {time_start,time_end,realtime,type} = this.state;
+        if(type == "custom"){
+          return <React.Fragment>
+            <span  className="text-primary font-size-base font-weight-bolder" id="kt_dashboard_daterangepicker_date">{time_start}</span>
+            <span  className="text-primary font-size-base font-weight-bolder" id="kt_dashboard_daterangepicker_date"> - </span>
+            <span  className="text-primary font-size-base font-weight-bolder" id="kt_dashboard_daterangepicker_date">{(!realtime) ? time_end : 'Now'}</span>
+          </React.Fragment>
+        }else if(type == "last_1_hour"){
+          return <span  className="text-primary font-size-base font-weight-bolder" id="kt_dashboard_daterangepicker_date">Last 1 Hour</span>
+        }else if(type == "last_3_hour"){
+          return <span  className="text-primary font-size-base font-weight-bolder" id="kt_dashboard_daterangepicker_date">Last 3 Hours</span>
+        }else if(type == "last_12_hour"){
+          return <span  className="text-primary font-size-base font-weight-bolder" id="kt_dashboard_daterangepicker_date">Last 12 Hours</span>
+        }else if(type == "last_24_hour"){
+          return  <span  className="text-primary font-size-base font-weight-bolder" id="kt_dashboard_daterangepicker_date">Last 24 Hours</span>
+        }else if(type == "last_one_week"){
+          return <span  className="text-primary font-size-base font-weight-bolder" id="kt_dashboard_daterangepicker_date">Last 1 Week</span>
+        }
+      }
+
+  
       render() {
-        const {time_start,time_end,realtime} = this.state;
+        const {time_start,time_end,realtime,dashboard_loading} = this.state;
         const {header} = this.props;
-        return (
+        return dashboard_loading ? (<div class="dashboard-center">
+          <Spinner />
+          </div>) : (
           <React.Fragment>
             <div className="subheader py-2 py-lg-4 subheader-solid" id="kt_subheader" >
               <div className="container-fluid d-flex align-items-center justify-content-between flex-wrap flex-sm-nowrap">
@@ -552,9 +635,7 @@ class DashboardPage extends React.Component {
 
 									<a href="#" className="btn btn-clean btn-sm font-weight-bold font-size-base mr-1" onClick={()=>this.setState({time_range_modal:true})}>
                   <i className="icon-1x text-muted flaticon2-calendar"></i>
-                  <span  className="text-primary font-size-base font-weight-bolder" id="kt_dashboard_daterangepicker_date">{time_start}</span>
-                  <span  className="text-primary font-size-base font-weight-bolder" id="kt_dashboard_daterangepicker_date"> - </span>
-                  <span  className="text-primary font-size-base font-weight-bolder" id="kt_dashboard_daterangepicker_date">{(!realtime) ? time_end : 'Now'}</span>
+                  {this.timer_ui()}
                   </a>
 
                                     
@@ -568,24 +649,22 @@ class DashboardPage extends React.Component {
               </div>
             </div>
                            
-            {/* <div className="d-flex flex-column-fluid">
-              <div className="container" style={{minHeight:'100vh'}}> */}
-                  <div className="row" style={{marginTop:'0px',minHeight:'100vh'}}>
-                    
-                    <div className="col-md-12">
-                      <ResponsiveReactGridLayout
-                        layout={this.state.layout}
-                        onLayoutChange={this.save_on_layout_change}
-                        {...this.props}
-                      >
-                        {this.generateDOM()}
-                        <span className="react-resizable-handle react-resizable-handle-se" style="touch-action: none;"></span>
-                      </ResponsiveReactGridLayout>
-                    </div>
-                  </div>
-                
-              {/* </div>
-          </div> */}
+            <div className="row" style={{marginTop:'0px',minHeight:'100vh'}}>
+           
+              <div className="col-md-12">
+              
+                <ResponsiveReactGridLayout
+                  layout={this.state.layout}
+                  onLayoutChange={this.save_on_layout_change}
+                  onBreakpointChange={this.onBreakpointChange}
+                  {...this.props}
+                >
+                  {this.generateDOM()}
+                  <span className="react-resizable-handle react-resizable-handle-se" style="touch-action: none;"></span>
+                </ResponsiveReactGridLayout>
+              </div>
+            </div>
+          
 
           <Modal show={this.state.add_widget_modal} onHide={this.close_modal} >
             <Modal.Header closeButton>
@@ -878,22 +957,36 @@ const AddWidgetForm = (props) =>{
 
 
 const TimeRangeSchema = Yup.object({
-  time_start: Yup.string().required('Time Start is required'),
-  time_end: Yup.string().required('Time End is required'),
+  time_start: Yup.string().when('type',{
+    is:(value)=>['custom'].includes(value),
+    then:Yup.string().required('Time Start is required')
+  }),
+  time_end: Yup.string().when('type',{
+    is:(value)=>['custom'].includes(value),
+    then:Yup.string().required('Time End is required')
+  }),
   realtime: Yup.string().required('Realtime Type is required'),
+  type: Yup.string().required('Type Type is required'),
 });
 
 const TimeRangeForm = (props) =>{
   const [realtime_checked, setRealtime] = useState((props.dashboard.realtime == 0) ? false:true);
   const formik = useFormik({
     initialValues:{
-        time_start:moment(props.dashboard.time_start, 'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DDTHH:mm'),
-        time_end:moment(props.dashboard.time_end, 'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DDTHH:mm'),
+        time_start:moment(props.dashboard.time_start).format('YYYY-MM-DDTHH:mm'),
+        time_end:moment(props.dashboard.time_end).format('YYYY-MM-DDTHH:mm'),
         realtime:(props.dashboard.realtime == 0) ? false:true,
+        type:props.dashboard.type,
     },
     validationSchema:TimeRangeSchema,
-    onSubmit: values => {
-        props.onSubmit(values)
+    onSubmit: (values) => {
+      console.log(values);
+        let payload = values;
+        if(values.type !== 'custom'){
+          delete payload.time_start;
+          delete payload.time_end;
+        }
+        props.onSubmit(payload);
         formik.resetForm({});
     },
   });
@@ -908,45 +1001,63 @@ const TimeRangeForm = (props) =>{
       <form className="form" id="kt_login_signin_form" onSubmit={formik.handleSubmit}>
           <div className="modal-body">
             <div className="form-group">
-              <label for="exampleSelect2">Time Start<span className="text-danger">*</span></label>
-              <input 
-                type="datetime-local" 
-                
-                onChange={formik.handleChange} 
-                name="time_start" 
-                value={formik.values.time_start} 
-                className="form-control"
-                max={formik.values.time_end}
-                />
-              {
-                  formik.errors.time_start ?
-                  <div className="invalid-feedback" style={{display:'block'}}>
-                      {formik.errors.time_start}
-                  </div>
-                  :
-                  null
-              }
+                <label for="exampleSelect2">Type<span className="text-danger">*</span></label>
+                <select className="form-control" id="exampleSelect2" onChange={formik.handleChange} name="type" value={formik.values.type}>
+                  <option value="" ></option>
+                  <option value="custom" >Custom</option>
+                  <option value="last_1_hour" >Last 1 Hour</option>
+                  <option value="last_3_hour" >Last 3 Hours</option>
+                  <option value="last_12_hour" >Last 12 Hours</option>
+                  <option value="last_24_hour" >Last 24 Hour</option>
+                  <option value="last_one_week" >Last 1 Week</option>
+                </select>
             </div>
-            <div className="form-group">
-              <label for="exampleSelect2">Time End<span className="text-danger">*</span></label>
-              <input 
-                type="datetime-local" 
-                onChange={formik.handleChange}
-                name="time_end" 
-                value={formik.values.time_end} 
-                className="form-control"
-                min={formik.values.time_start}
-                disabled={formik.values.time_start == null}
-                />
-              {
-                  formik.errors.time_end ?
-                  <div className="invalid-feedback" style={{display:'block'}}>
-                      {formik.errors.time_end}
-                  </div>
-                  :
-                  null
-              }
-            </div>      
+            {
+              formik.values.type == "custom" &&
+              <React.Fragment>
+                <div className="form-group">
+                  <label for="exampleSelect2">Time Start<span className="text-danger">*</span></label>
+                  <input 
+                    type="datetime-local" 
+                    
+                    onChange={formik.handleChange} 
+                    name="time_start" 
+                    value={formik.values.time_start} 
+                    className="form-control"
+                    max={formik.values.time_end}
+                    />
+                  {
+                      formik.errors.time_start ?
+                      <div className="invalid-feedback" style={{display:'block'}}>
+                          {formik.errors.time_start}
+                      </div>
+                      :
+                      null
+                  }
+                </div>
+                <div className="form-group">
+                  <label for="exampleSelect2">Time End<span className="text-danger">*</span></label>
+                  <input 
+                    type="datetime-local" 
+                    onChange={formik.handleChange}
+                    name="time_end" 
+                    value={formik.values.time_end} 
+                    className="form-control"
+                    min={formik.values.time_start}
+                    disabled={formik.values.time_start == null}
+                    />
+                  {
+                      formik.errors.time_end ?
+                      <div className="invalid-feedback" style={{display:'block'}}>
+                          {formik.errors.time_end}
+                      </div>
+                      :
+                      null
+                  }
+                </div>  
+              </React.Fragment>
+            }
+                
             <div className="form-group" style={{flexDirection:'column',display:'flex'}}>
               <label for="exampleSelect2">Real Time<span className="text-danger">*</span></label>
               {/* <label htmlFor="material-switch">
