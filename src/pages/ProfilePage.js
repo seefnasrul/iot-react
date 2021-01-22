@@ -12,21 +12,19 @@ import ClipLoader from "react-spinners/ClipLoader";
 
 
 /* validation schema */
-const RegisterSchema = Yup.object().shape({
+const ProfileSchema = Yup.object().shape({
     email: Yup.string()
-        .email('Format email salah!')
-        .required('Wajid Disi!'),
+        .email('Invalid Email!')
+        .required('Required!'),
     password: Yup.string()
-        .min(2, 'Password Harus lebih dari 2 digit!'),
+        .min(8, 'Password minimum of 8 digits'),
     confirm_password: Yup.string()
-        .test('passwords-match', 'Pengulangan Password Harus Sama.', function (value) {
+        .test('passwords-match', 'Confirm password must match.', function (value) {
             return this.parent.password === value;
         }),
-    username: Yup.string().trim('Harus Tanpa Spasi!').strict(true).required('Wajib Diisi!'),
-    name: Yup.string().required('Wajib Diisi!'),
-    kontak: Yup.string().matches(/^08[0-9]{9,}$/g, 'Format nomor anda salah Cth: 08123456789').required('Wajib Diisi!'),
-    desa: Yup.string().required('Wajib Diisi!'),
-    sekolah: Yup.string().required('Wajib Diisi!'),
+    name: Yup.string().required('Required!'),
+    company_name: Yup.string().required('Required!'),
+    // kontak: Yup.string().matches(/^08[0-9]{9,}$/g, 'Format nomor anda salah Cth: 08123456789').required('Required!'),
 });
 
 class ProfilePage extends Component {
@@ -84,19 +82,19 @@ class ProfilePage extends Component {
         let formData = new FormData();
 
 
-        if (new_profile_image_form_data) {
-            formData.append('profile_picture', new_profile_image_form_data);
-        }
+        // if (new_profile_image_form_data) {
+        //     formData.append('profile_picture', new_profile_image_form_data);
+        // }
 
         formData.append('email', data.email);
-        formData.append('password', data.password);
-        formData.append('confirm_password', data.confirm_password);
-        formData.append('username', data.username);
         formData.append('name', data.name);
-        formData.append('kontak', data.kontak);
-        formData.append('desa', data.desa);
-        formData.append('sekolah', data.sekolah);
-        formData.append('token', token);
+        formData.append('company_name', data.company_name);
+        if(data.password !== "" || data.password !== null){
+            formData.append('password', data.password);
+            formData.append('confirm_password', data.confirm_password);
+        }
+        
+        // formData.append('token', token);
 
         this.setState({
             loading: true
@@ -140,11 +138,23 @@ class ProfilePage extends Component {
         }
 
         return (
-            <div className="row">
-                <div className="col-12 col-md-12 col-lg-10">
-                    <Form onSubmit={this.onPressSubmitButton} user_data={user_data} this={this}/>
+            <div className="card card-custom">
+                <div className="card-header">
+                    <div className="card-title">
+                        <span class="card-icon"><i class="flaticon2-user text-primary"></i></span>
+                        <h3 class="card-label">Profile</h3>
+                    </div>
+                    <div className="card-toolbar"></div>
+                </div>
+                <div class="card-body alert-custom alert-white alert-shadow gutter-b" id="dt-container">
+                    <div className="row">
+                        <div className="col-12 col-md-12 col-lg-12" style={{width:'100%',height:'100vh'}}>
+                            <Form onSubmit={this.onPressSubmitButton} user_data={user_data} this={this}/>
+                        </div>
+                    </div>
                 </div>
             </div>
+            
         )
     }
 }
@@ -174,26 +184,23 @@ function Form(props) {
     const formik = useFormik({
         initialValues: {
             email: props.user_data.email,
+            name: props.user_data.name,
+            company_name: props.user_data.company.name,
             password: '',
             confirm_password: '',
-            username: props.user_data.first_name,
-            name: props.user_data.last_name,
-            kontak: props.user_data.contact_no,
-            desa: props.user_data.alamat_lengkap,
-            sekolah: props.user_data.alamat_sekolah
         },
         onSubmit: values => {
             props.onSubmit(values)
         },
-        validationSchema: RegisterSchema
+        validationSchema: ProfileSchema
     });
     const {handleChange, handleBlur, handleSubmit, values, errors, setFieldTouched, touched, setFieldValue} = formik;
     return (
         <form onSubmit={handleSubmit}>
-            <div className="card profile-widget">
-                <div className="profile-widget-description">
+                    <h6 className="text-primary">Account</h6>
+                    <hr/>
                     <div className="row">
-                        <div className="col-md-12 mb-4 text-center">
+                        {/* <div className="col-md-12 mb-4 text-center">
                             <div>
                                 <img width="20%" alt="image"
                                      src={props.this.state.new_profile_image ? props.this.state.new_profile_image : ((props.user_data.photo) ? props.user_data.photo : "../assets/img/avatar/avatar-1.png")}
@@ -205,10 +212,14 @@ function Form(props) {
                             <Modal isOpen={props.this.state.modal_test_visible}
                                    toggle={() => props.this.toggle_modal_visible()} this={props.this}
                                    state={props.this.state}/>
+                        </div> */}
+                        
+                        <div className="form-group col-md-12">
+                            <label>Email</label>
+                            <input type="text" className="form-control" value={values.email} readOnly="true" disabled={true}/>
                         </div>
-
-                        <div className="form-group col-md-6">
-                            <label>Nama</label>
+                        <div className="form-group col-md-12">
+                            <label>Name</label>
                             <input onError={(errors.name && touched.name) ? errors.name : null}
                                    type="text" className="form-control"
                                    onBlur={() => setFieldTouched('name')}
@@ -220,80 +231,27 @@ function Form(props) {
                                 </div>
                             }
                         </div>
-                        <div className="form-group col-md-6">
-                            <label>Username</label>
-                            <input
-                                onError={(errors.username && touched.username) ? errors.username : null}
-                                type="text" className="form-control"
-                                onBlur={() => setFieldTouched('username')}
-                                onChange={handleChange('username')} value={values.username}
-                                required=""/>
-                            {
-                                formik.errors.username &&
-                                <div className="invalid-feedback" style={{display:'block'}}>
-                                    {formik.errors.username}
-                                </div>
-                            }
-                        </div>
-                        <div className="form-group col-md-6">
-                            <label>Alamat Email</label>
-                            <input onError={(errors.email && touched.email) ? errors.email : null}
-                                   type="email" className="form-control"
-                                   onBlur={() => setFieldTouched('username')}
-                                   onChange={handleChange('email')} value={values.email} required=""/>
-                            {
-                                formik.errors.email &&
-                                <div className="invalid-feedback" style={{display:'block'}}>
-                                    {formik.errors.email}
-                                </div>
-                            }
-                        </div>
-                        <div className="form-group col-md-6">
-                            <label>Telepon</label>
-                            <input onError={(errors.kontak && touched.kontak) ? errors.kontak : null}
-                                   type="number" className="form-control"
-                                   onBlur={() => setFieldTouched('kontak')}
-                                   onChange={handleChange('kontak')} value={values.kontak} required=""/>
-                            {
-                                formik.errors.kontak &&
-                                <div className="invalid-feedback" style={{display:'block'}}>
-                                    {formik.errors.kontak}
-                                </div>
-                            }
-                        </div>
-                        <div className="form-group col-md-6">
-                            <label>Kecamatan / Desa</label>
-                            <AsyncSelect
-                                name="desa"
-                                cacheOptions defaultOptions
-                                loadOptions={promiseOptions}
-                                defaultValue={{value: values.desa, label: values.desa}}
-                                onChange={(value) => setFieldValue('desa', value.value, true)}
-                            />
-
-                            {
-                                formik.errors.desa &&
-                                <div className="invalid-feedback" style={{display:'block'}}>
-                                    {formik.errors.desa}
-                                </div>
-                            }
-                        </div>
-                        <div className="form-group col-md-6">
-                            <label>Nama Sekolah</label>
-                            <input onError={(errors.sekolah && touched.sekolah) ? errors.sekolah : null}
-                                   type="text" className="form-control"
-                                   onBlur={() => setFieldTouched('sekolah')}
-                                   onChange={handleChange('sekolah')} value={values.sekolah}
-                                   required=""/>
-                            {
-                                formik.errors.password &&
-                                <div className="invalid-feedback" style={{display:'block'}}>
-                                    {formik.errors.password}
-                                </div>
-                            }
-                        </div>
                     </div>
-                    <h6 className="text-success">Ubah Password</h6>
+                    <h6 className="text-primary">Company</h6>
+                    <hr/>
+                        <div className="row">
+                            <div className="form-group col-md-12">
+                                <label>Name</label>
+                                <input onError={(errors.company_name && touched.company_name) ? errors.company_name : null}
+                                    type="text" className="form-control"
+                                    onBlur={() => setFieldTouched('company_name')}
+                                    onChange={handleChange('company_name')} value={values.company_name} required=""/>
+                                {
+                                    formik.errors.company_name &&
+                                    <div className="invalid-feedback" style={{display:'block'}}>
+                                        {formik.errors.company_name}
+                                    </div>
+                                }
+                            </div>
+
+                        </div>
+                    <h6 className="text-primary">Ubah Password</h6>
+                    <hr/>
                     <div className="row">
                         <div className="form-group col-md-6">
                             <label>Password</label>
@@ -310,7 +268,7 @@ function Form(props) {
                             }
                         </div>
                         <div className="form-group col-md-6">
-                            <label>Konfirmasi Password</label>
+                            <label>Change Password</label>
                             <input
                                 onError={(errors.confirm_password && touched.confirm_password) ? errors.confirm_password : null}
                                 type="password" className="form-control"
@@ -325,12 +283,8 @@ function Form(props) {
 
                         </div>
                     </div>
-                </div>
-                <div className="card-footer">
-                    <button className="btn btn-lg btn-success" type={"submit"}>Perbarui Data
+                    <button className="btn btn-lg btn-primary" type={"submit"}>Save
                     </button>
-                </div>
-            </div>
         </form>
     )
 }

@@ -56,7 +56,7 @@ export function* watchLogin() {
 function postProfile(params){
     console.log('sagaparam:',params);
     return axios({
-        url: Url.API+'/page/profile',
+        url: Url.API+'/auth/update_profile',
         method: 'POST',
         data: params,
         headers: {
