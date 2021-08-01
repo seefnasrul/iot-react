@@ -13,7 +13,7 @@ import { ToastContainer,toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import ClipLoader from "react-spinners/ClipLoader";
 
-import "../assets_copy/css/pages/login/classic/login-5.css"
+import "../themes_assets/css/pages/login/classic/login-5.css"
 import {Helmet} from "react-helmet";
 class LoginPage extends React.Component{
     constructor(props){
@@ -61,12 +61,12 @@ class LoginPage extends React.Component{
                     <meta name="description" content="Login - Matoa.io" />
                 </Helmet>
                 <div className="login login-5 login-signin-on d-flex flex-row-fluid" id="kt_login">
-                    <div className="d-flex flex-center bgi-size-cover bgi-no-repeat flex-row-fluid" style={{backgroundImage: `url(${require("../assets_copy/media/bg/bg-2.jpg")})`}}>
+                    <div className="d-flex flex-center bgi-size-cover bgi-no-repeat flex-row-fluid" style={{backgroundImage: `url(${require("../themes_assets/media/bg/bg-2.jpg")})`}}>
                         <div className="login-form text-center text-white p-7 position-relative overflow-hidden">
 
                             <div className="d-flex flex-center mb-15">
                                 <a href="#">
-                                    <img src={require("../assets_copy/media/logos/logo-letter-13.png")} className="max-h-75px" alt="" />
+                                    <img src={require("../themes_assets/media/logos/logo-letter-13.png")} className="max-h-75px" alt="" />
                                 </a>
                             </div>
 

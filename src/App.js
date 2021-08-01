@@ -8,7 +8,6 @@ import axios from 'axios';
 
 import LoginPage from './pages/LoginPage'
 
-
 import {applyMiddleware, compose, createStore} from 'redux';
 import {Provider, ReactReduxContext} from 'react-redux';
 import allReducers from './redux/reducers';
@@ -30,8 +29,8 @@ import { useMediaQuery } from 'react-responsive';
 import { createMuiTheme } from '@material-ui/core/styles';
 import { ThemeProvider } from '@material-ui/core/styles';
 import Color from './constants/Color';
-import './assets_copy/css/style.bundle.min.css';
-import './assets_copy/plugins/global/plugins.bundle.css';
+import './themes_assets/css/style.bundle.min.css';
+import './themes_assets/plugins/global/plugins.bundle.css';
 import './App.css';
 const theme = createMuiTheme({
   palette: {
@@ -150,7 +149,7 @@ function PrivateRoute({children, ...rest}) {
 function NoPage() {
     return (
 		<div class="d-flex flex-column flex-root" style={{height:'100vh'}}>
-			<div class="d-flex flex-row-fluid flex-column bgi-size-cover bgi-position-center bgi-no-repeat p-10 p-sm-30" style={{backgroundImage:`url(${require('./assets_copy/media/error/bg1.jpg')})`,height:'100%'}}>
+			<div class="d-flex flex-row-fluid flex-column bgi-size-cover bgi-position-center bgi-no-repeat p-10 p-sm-30" style={{backgroundImage:`url(${require('./themes_assets/media/error/bg1.jpg')})`,height:'100%'}}>
 				<h1 class="font-weight-boldest text-dark-75 mt-15" style={{fontSize: "10rem"}}>404</h1>
 				<p class="font-size-h3 text-muted font-weight-normal">OOPS! Something went wrong here</p>
 			</div>

@@ -5,7 +5,7 @@ import axios from "axios";
 import Url from '../../constants/Url';
 import {connect} from 'react-redux';
 import {Link,withRouter,useParams} from 'react-router-dom';
-import '../../assets_copy/datatables.css';
+import '../../themes_assets/datatables.css';
 import * as deviceActions from '../../redux/actions/deviceActions';
 import {bindActionCreators} from 'redux';
 // import {bindActionCreators} from 'redux';
@@ -13,8 +13,6 @@ import {bindActionCreators} from 'redux';
 const $ = require('jquery')
 $.Datatable = require('datatables.net')
 $.DataTable = window.datatables; 
-
-
 
 class DeviceLogList extends React.Component {
     constructor(props) {
@@ -38,9 +36,7 @@ class DeviceLogList extends React.Component {
         console.log(data);
         await this.setState({device:data.data});   
         await this.setState({loading:false});
-
         this.sync();
-
     }
 
     get_on_failed = (data) =>{
